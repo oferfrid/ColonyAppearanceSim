@@ -81,6 +81,12 @@ namespace IritSimulation
 			
 		}
 		
+		
+		static public double RandLogNormal(LognormalParameters LP)
+		{
+			return RandLogNormal(LP.mu,LP.sigma);
+		}
+		
 		static public double RandLogNormal(double tau,double sigma)
 		{
 			//Generate LogNormal distubution random value around tau
@@ -90,6 +96,27 @@ namespace IritSimulation
 			return x1;
 			
 		}
+		
+		static public LognormalParameters  CommuteLognormalParameters(double mean, double variance)
+		{
+			LognormalParameters LP  = new Utils.LognormalParameters();
+			LP.mu = Math.Log(Math.Pow(mean,2)/Math.Sqrt(variance+Math.Pow(mean,2)));
+			LP.sigma = Math.Sqrt(Math.Log(variance/mean + 1)) ;
+			return LP;
+		}
+		
+		public struct LognormalParameters
+		{
+			 public double mu;
+			 public double sigma;
+			 public LognormalParameters(double _mu,double _sigma)
+			 {
+			 mu = _mu;
+			 sigma = _sigma;
+			 }
+
+		}
+		
 		
 		static public double RandLogistic(double tau,double N0 ,double Nmax,double tFinal)
 		{
