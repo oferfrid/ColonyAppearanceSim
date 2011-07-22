@@ -81,10 +81,10 @@ namespace IritSimulation
 			
 		}
 		
-		static public double RandLogNormal(double sigma)
+		static public double RandLogNormal(double tau,double sigma)
 		{
-			//Generate LogNormal distubution random value around 0
-			double x0= RandNormal(sigma);
+			//Generate LogNormal distubution random value around tau
+			double x0= RandNormal(tau,sigma);
 			double x1= Math.Exp(x0);
 			
 			return x1;

@@ -23,15 +23,19 @@ namespace IritSimulation
 		public double[] GrowDivision;
 		
 		
-		double dt = 0.1;
+		double dt = 0.001;
 		double tu;
 		double N0;
+		double Sigma;
 		
-		public Colony(double MaxTime,int N0,double tu)
+		public Colony(double MaxTime,int N0,double tu,double Sigma)
 		{
 
 			this.tu = tu;
-			GrowDivision = new double[Convert.ToInt32( Math.Ceiling(MaxTime/dt))];
+			this.Sigma = Sigma;
+			 GrowDivision = new double[Convert.ToInt32(Math.Ceiling(MaxTime/dt))];
+			 //GrowDivision = new double[Convert.ToInt32( Math.Ceiling(GrowTime/dt))];
+			//GrowDivision = new double[Convert.ToInt32(GrowTime)];
 			//init array
 			
 			this.N0 = N0;	
@@ -43,7 +47,8 @@ namespace IritSimulation
 			{
 				int ind;
 				ind = GetDivisionTimeIndex(tu);
-				GrowDivision[ind]++;
+				if (ind < GrowDivision.Length)
+					GrowDivision[ind]++;
 			}
 			
 		}
@@ -109,6 +114,8 @@ namespace IritSimulation
 		}
 		
 		public double GrowtoSize(double Size)
+			// returns the time in minutes it takes a colony 
+			// with N0 initial cells to get to Size.
 		{
 			double N=N0;
 			int t=0;
@@ -141,15 +148,23 @@ namespace IritSimulation
 				for(int i=0;i<GrowDivision[t];i++)
 				{
 					int ind;
-					ind = GetDivisionTimeIndex(tu);
-					GrowDivision[t+ind]++;
-					ind = GetDivisionTimeIndex(tu);
-					GrowDivision[t+ind]++;
+					for (int m=0;m<2;m++) {
+						ind = GetDivisionTimeIndex(tu);
+						if (t+ind < GrowDivision.Length)
+							GrowDivision[t+ind]++;
+								
+					}
 					N++;
+
+						
+					//ind = GetDivisionTimeIndex(tu);
+					//GrowDivision[t+ind]++;
+					//N++;
 				}
 				t++;
 				
-			}while (((double)t)*dt<=time);
+			}
+			while (((double)t)*dt<=time);
 			
 			return N;
 		}
@@ -174,7 +189,11 @@ namespace IritSimulation
 			//double DivTime = Utils.RandBiNormal(20,2,100,2,0.2);
 			//double DivTime = Utils.RandBiNormal(8,2,100,2,0.2);
 			
-			double DivTime = Utils.RandDecayExponantial(1.0/tau);
+			//double DivTime = Utils.RandNormal(tau,Sigma);
+			double DivTime = Utils.RandNormal(tau,Sigma);
+			//double DivTime = Utils.RandDecayExponantial(1.0/tau);
+			//double DivTime = Utils.RandDecayExponantial(1.0/tau);
+			//RandExponantial(double Nf,double N0
 			//double DivTime = muDouble;
 			//double DivTime = Utils.RandUniform(muDouble-sigDouble, muDouble+sigDouble);
 			int DivInd = GetIndFromdouble(DivTime);
