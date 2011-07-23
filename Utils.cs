@@ -101,7 +101,7 @@ namespace IritSimulation
 		{
 			LognormalParameters LP  = new Utils.LognormalParameters();
 			LP.mu = Math.Log(Math.Pow(mean,2)/Math.Sqrt(variance+Math.Pow(mean,2)));
-			LP.sigma = Math.Sqrt(Math.Log(variance/mean + 1)) ;
+			LP.sigma = Math.Sqrt(Math.Log(variance/Math.Pow(mean,2) + 1)) ;
 			return LP;
 		}
 		

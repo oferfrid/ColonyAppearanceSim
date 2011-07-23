@@ -1,4 +1,5 @@
-﻿<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <ProjectGuid>{0513E105-FCC3-4B1C-9FD1-08AFB7813BFD}</ProjectGuid>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
@@ -45,8 +46,11 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AssemblyInfo.cs" />
-    <Compile Include="Colony.cs" />
     <Compile Include="Program.cs" />
+    <Compile Include="SimulateTube.cs" />
+    <Compile Include="StrainParameters.cs" />
+    <Compile Include="Tube.cs" />
+    <Compile Include="TubeParameters.cs" />
     <Compile Include="Utils.cs" />
   </ItemGroup>
 </Project>

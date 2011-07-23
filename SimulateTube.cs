@@ -12,157 +12,129 @@ using System;
 namespace IritSimulation
 {
 	/// <summary>
-	/// Description of Tube.
+	/// Description of SimulateTube.
 	/// </summary>
-	public class Tube
+	public static class SimulateTube
 	{
 		
-		
-		public double[,] GrowDivision;
-		
-
-		TubeParameters TP;
-		
-		public double dt =1;
-		public double t;
-		
-		public Tube(TubeParameters TP,double MaxTime)
-		{
-			this.TP = TP;
-
-			GrowDivision = new double[Convert.ToInt32(Math.Ceiling(MaxTime/dt)),TP.NumberOfStrains];
-			
-			
-			//init to 0
-			for (int i=0; i<GrowDivision.GetLength(0) ; i++)
-			{
-				for (int s=0; s<GrowDivision.GetLength(1) ; s++)
-					GrowDivision[i,s]=0;
-			}
-			
-			
-		}
-		
-		public double[,] CommuteLag()
+	
+		private static  Tube CommuteLag(Tube T,double GrowKill)
 			
 		{
 			//Get LagTime for each bacteria strain
-			for(int s=0;s<TP.NumberOfStrains;s++)
+			for(int s=0;s<T.TP.NumberOfStrains;s++)
 			{
 				//Calc Number of normal cels
-				double N0Persisters = Math.Round((double)TP.Strains[s].No*TP.Strains[s].PersistersLevel);
-				double N0Normal = TP.Strains[s].No - N0Persisters;
+				double N0Persisters = Math.Round((double)T.LastN[s]*T.TP.Strains[s].PersistersLevel);
+				double N0Normal = T.LastN[s] - N0Persisters;
 				
-				double mulagNormal = 1.0/TP.Strains[s].LagMeanNormal;
-				double mulagPersisters = 1.0/TP.Strains[s].LagMeanPersisters;
+				double mulagNormal = 1.0/T.TP.Strains[s].LagMeanNormal;
+				double mulagPersisters = 1.0/T.TP.Strains[s].LagMeanPersisters;
 				
 				//put normal first divition
 				for(int i=0;i<N0Normal;i++)
 				{
 					double LagTime = Utils.RandDecayExponantial(mulagNormal) ;
-					int DivInd = GetIndFromdouble(LagTime);
-					GrowDivision[DivInd,s]++;
+					int DivInd = GetIndFromdouble(LagTime,T.dt);
+					T.GrowDivision[DivInd+T.LastT,s]+=GrowKill;
 				}
 				//put Persisters first divition
 				for(int i=0;i<N0Persisters;i++)
 				{
 					double LagTime = Utils.RandDecayExponantial(mulagPersisters);
-					int DivInd = GetIndFromdouble(LagTime);
-					GrowDivision[DivInd,s]++;
+					int DivInd = GetIndFromdouble(LagTime,T.dt);
+					T.GrowDivision[DivInd+T.LastT,s]+=GrowKill;
 				}
 			}
-			return GrowDivision;
+			return T;
 			
 		}
 		
+		public static  Tube CommuteLagForGrow(Tube T)
+		{
+			 return CommuteLag( T, 1);
+		}
+		public static  Tube CommuteLagForKill(Tube T)
+		{
+			 return CommuteLag( T,-1);
+		}
 		
-		public double[,] Kill(double KillTime)
+		public static Tube Kill(Tube T,double KillTime)
 		{
 		//usin kill whan bacteria divides
+		CommuteLagForKill(T);
+		int KillTimeInIndexs = (int)Math.Round(KillTime/T.dt)  ;
 		
+		//zero future divitions
+			for(int tt = T.LastT + KillTimeInIndexs; tt<T.GrowDivision.GetLength(0);tt++)
+			{
+				for (int s=0;s<T.TP.NumberOfStrains;s++)
+				{
+					T.GrowDivision[tt,s]=0;
+				}
+			}
+			
+			T.LastT += KillTimeInIndexs;
+		
+		return T;
 		}
 		
-		public double[,] GrowToNmax()
+		public static Tube GrowToNmax(Tube T)
 		{
 			double NTot=0;
-			
-			for (int s=0;s<TP.NumberOfStrains;s++)
+			CommuteLagForGrow(T);
+			for (int s=0;s<T.TP.NumberOfStrains;s++)
 			{
-				NTot+=TP.Strains[s].No;
+				NTot+=T.LastN[s];
 			}
-			int t=0;
+			int t=T.LastT;
 			
 			do
 			{
-				for (int s=0;s<TP.NumberOfStrains;s++)
+				for (int s=0;s<T.TP.NumberOfStrains;s++)
 				{
-					for(int i=0;i<GrowDivision[t,s];i++)
+					for(int i=0;i<T.GrowDivision[t,s];i++)
 					{
 						
 						//add the next 2 divisions
 						int ind;
-						ind = GetDivisionTimeIndex(TP.Strains[s].DivLognormalParameters);
-						GrowDivision[t+ind,s]++;
-						ind = GetDivisionTimeIndex(TP.Strains[s].DivLognormalParameters);
-						GrowDivision[t+ind,s]++;
+						ind = GetDivisionTimeIndex(T.TP.Strains[s].DivLognormalParameters,T.dt);
+						T.GrowDivision[t+ind,s]++;
+						ind = GetDivisionTimeIndex(T.TP.Strains[s].DivLognormalParameters,T.dt);
+						T.GrowDivision[t+ind,s]++;
 						NTot++;
 					}
 				}
 				t++;
 				
-			}while (NTot<TP.Nmax);
+			}while (NTot<T.TP.Nmax);
+			
+			T.LastT = t-1;
 			
 			//zero future divitions
-			for(int tt = t; tt<GrowDivision.GetLength(0);tt++)
+			for(int tt = t; tt<T.GrowDivision.GetLength(0);tt++)
 			{
-				for (int s=0;s<TP.NumberOfStrains;s++)
+				for (int s=0;s<T.TP.NumberOfStrains;s++)
 				{
-					GrowDivision[tt,s]=0;
+					T.GrowDivision[tt,s]=0;
 				}
-			}
-
-			return GrowDivision;
-		}
-		
-		public  double[,] NBacteria
-		{
-			get {
-				//add row for time [time,strain 1 strain 2...]
-				double[,] NBacteria = new double[GrowDivision.GetLength(0),TP.NumberOfStrains +1];
-				
-				NBacteria[0,0] = dt*0;
-				//init the first cell to N0.
-				for (int s=0;s<TP.NumberOfStrains;s++)
-				{
-					NBacteria[0,s+1] = TP.Strains[s].No + GrowDivision[0,s];
-				}
-				
-				for(int i=1;i<GrowDivision.GetLength(0);i++)
-				{
-					NBacteria[i,0] = dt*i;
-					for (int s=0;s<TP.NumberOfStrains;s++)
-					{
-						NBacteria[i,s+1] = NBacteria[i-1,s+1]+GrowDivision[i,s];
-					}
-				}
-				
-				
-				return NBacteria;
 			}
 			
+			return T;
 		}
 		
 		
-		private int GetDivisionTimeIndex(Utils.LognormalParameters LP)
+		
+		 private static int GetDivisionTimeIndex(Utils.LognormalParameters LP,double dt)
 		{
 			
 			double DivTime = Utils.RandLogNormal(LP);
 			
-			int DivInd = GetIndFromdouble(DivTime);
+			int DivInd = GetIndFromdouble(DivTime,dt);
 			return DivInd;
 		}
 		
-		private int GetIndFromdouble(double Time)
+		 private static int GetIndFromdouble(double Time,double dt)
 		{
 			int ind;
 			if (Time == double.PositiveInfinity)
