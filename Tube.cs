@@ -14,7 +14,7 @@ namespace IritSimulation
 	/// <summary>
 	/// Description of Tube.
 	/// </summary>
-	public struct Tube
+	public class Tube
 	{
 		
 		public double[,] GrowDivision;
