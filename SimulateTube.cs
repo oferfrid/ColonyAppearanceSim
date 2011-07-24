@@ -81,18 +81,21 @@ namespace IritSimulation
 		
 		public static Tube GrowToNmax(Tube T)
 		{
-			double NTot=0;
+			double[] N = new double[T.TP.NumberOfStrains];
+			double NTot = 0;
 			CommuteLagForGrow(T);
 			for (int s=0;s<T.TP.NumberOfStrains;s++)
 			{
-				NTot+=T.LastN[s];
+				N[s]=T.LastN[s];
 			}
 			int t=T.LastT;
 			
 			do
 			{
+				NTot = 0;
 				for (int s=0;s<T.TP.NumberOfStrains;s++)
 				{
+					
 					for(int i=0;i<T.GrowDivision[t,s];i++)
 					{
 						
@@ -102,8 +105,11 @@ namespace IritSimulation
 						T.GrowDivision[t+ind,s]++;
 						ind = GetDivisionTimeIndex(T.TP.Strains[s].DivLognormalParameters,T.dt);
 						T.GrowDivision[t+ind,s]++;
-						NTot++;
+						N[s]++;
+						
 					}
+					
+					NTot +=N[s];
 				}
 				t++;
 				

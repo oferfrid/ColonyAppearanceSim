@@ -27,7 +27,7 @@ namespace IritSimulation
 		public Tube(TubeParameters TP,double MaxTime)
 		{
 		this.TP = TP;
-		dt=1;
+		dt=.1;
 
 			GrowDivision = new double[Convert.ToInt32(Math.Ceiling(MaxTime/dt)),TP.NumberOfStrains];
 			
