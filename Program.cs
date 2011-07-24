@@ -20,10 +20,10 @@ namespace IritSimulation
 			Utils.Init(1);
 			
 			
-			RunSim(1);
+			RunSimSerial(20);
 			
 		}
-	
+		
 		private static void RandDemo(double mean,double variance)
 			// testing the rand generator
 		{
@@ -45,27 +45,30 @@ namespace IritSimulation
 		
 
 		
-		private static void RunSim(int SimulationSize)
+		private static void RunSimSerial(int SimulationSize)
 		{
 			
 			
 			Console.WriteLine("Start");
-		//	Utils.Init(1);
+			//	Utils.Init(1);
 			
 			// Simulation Parameter
-			double maxTime = 1e5 ;	
+			double maxTime = 1e5 ;
 			
-			TubeParameters TP = new TubeParameters(1e6,new StrainParameters[]{ new StrainParameters("Hip",100,0.1,20,1000,21,3),new StrainParameters("WT",100,0.001,20,1000,21,3)});
-							
-			string FName = @"T0.1";
-			string filename = FName+  ".txt";
-			System.IO.StreamWriter SR = new StreamWriter(filename, false);
+			for(int sim=0;sim<SimulationSize;sim++)
+			{
+				
+				TubeParameters TP = new TubeParameters(1e6,new StrainParameters[]{ new StrainParameters("Hip",100,0.1,20,1000,21,3),new StrainParameters("WT",100,0.001,20,1000,21,3)});
+				
+				string FName = @"Sim" + sim.ToString();
+				string filename = FName+  ".txt";
+				System.IO.StreamWriter SR = new StreamWriter(filename, false);
 
-			
+				
 				Tube tube = new Tube(TP,maxTime);
-		
+				
 				tube = SimulateTube.GrowToNmax(tube);
-								
+				
 				
 				double[,] N = tube.NBacteria;
 				double[] t = tube.Time;
@@ -73,23 +76,23 @@ namespace IritSimulation
 				for (int i=0; i<N.GetLength(0); i++)
 				{
 					SR.Write("{0}\t",t[i]);
-					for (int j=0; j<N.GetLength(1); j++)	
+					for (int j=0; j<N.GetLength(1); j++)
 					{
-					SR.Write("{0}\t",N[i,j]);
+						SR.Write("{0}\t",N[i,j]);
 					}
 					SR.WriteLine();
 					
 				}
-		
-//				SR.WriteLine("{0}",colTime);
-//				PrintPresentege(i,SimulationSize);
-
-			SR.Close();
+				SR.Close();
+				
+				PrintPresentege(sim,SimulationSize);
+			}
+			
 
 			
 			Console.Write("Finished!");
 			
-	}
+		}
 		
 		
 
