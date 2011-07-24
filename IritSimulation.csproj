@@ -51,6 +51,7 @@
     <Compile Include="StrainParameters.cs" />
     <Compile Include="Tube.cs" />
     <Compile Include="TubeParameters.cs" />
+    <Compile Include="TubeWrapper.cs" />
     <Compile Include="Utils.cs" />
   </ItemGroup>
 </Project>

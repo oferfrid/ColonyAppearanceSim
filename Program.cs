@@ -18,7 +18,7 @@ namespace IritSimulation
 		
 		
 		private static int SimulationSize ;
-		private static int _numerOfThreadsNotYetCompleted ;
+		public static int _numerOfThreadsNotYetCompleted ;
 		private static ManualResetEvent _doneEvent = new ManualResetEvent(false);
 		
 		
@@ -52,15 +52,22 @@ namespace IritSimulation
 		
 		private static void RunSimParalel(int SimulationSize)
 		{
-			
+			double maxTime = 1e5 ;
 			 _numerOfThreadsNotYetCompleted = SimulationSize;
-			for (int threadNumber = 0; threadNumber < SimulationSize; threadNumber++)
+			ManualResetEvent doneEvent = new ManualResetEvent(false);
+			TubeWrapper[] TubeArray = new TubeWrapper[SimulationSize];
+			
+			for (int i = 0; i < SimulationSize; i++)
 			{
-				ThreadPool.QueueUserWorkItem(new WaitCallback(RunOneSim),(object)threadNumber);
+				//doneEvents[i] = new ManualResetEvent(false);
+
+				TubeParameters TP = new TubeParameters(1e6,new StrainParameters[]{ new StrainParameters("Hip",100,0.1,20,1000,21,3),new StrainParameters("WT",100,0.001,20,1000,21,3)});
+				
+				TubeWrapper T = new TubeWrapper(TP,maxTime,doneEvent);
+				TubeArray[i] = T;
+				ThreadPool.QueueUserWorkItem(T.ThreadPoolCallback, i);
 			}
-
-			_doneEvent.WaitOne();
-
+		
 			
 			
 			
