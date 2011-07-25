@@ -79,6 +79,22 @@ namespace IritSimulation
 		return T;
 		}
 		
+		public static Tube Dilut(Tube T,double ratio)
+		{
+		
+			
+			for (int s=0;s<T.TP.NumberOfStrains;s++)
+				{
+				 double  NewN = Utils.RandBinomial(T.LastN[s],ratio);
+				 T.GrowDivision[T.LastT,s]-=T.LastN[s] - NewN;
+				}
+			
+			T.LastT++;
+		
+		return T;
+		}
+		
+		
 		public static Tube GrowToNmax(Tube T)
 		{
 			double[] N = new double[T.TP.NumberOfStrains];
@@ -129,7 +145,60 @@ namespace IritSimulation
 			return T;
 		}
 		
-		
+		public static Tube GrowToTime(Tube T,double Time)
+		{
+			int GrowTimeInIndexs = (int)Math.Round(Time/T.dt)  ;
+			int EndGrowingIndex = GrowTimeInIndexs + T.LastT;
+			
+			
+			double[] N = new double[T.TP.NumberOfStrains];
+			double NTot = 0;
+			CommuteLagForGrow(T);
+			
+			for (int s=0;s<T.TP.NumberOfStrains;s++)
+			{
+				N[s]=T.LastN[s];
+			}
+			int t=T.LastT;
+			
+			do
+			{
+				NTot = 0;
+				for (int s=0;s<T.TP.NumberOfStrains;s++)
+				{
+					
+					for(int i=0;i<T.GrowDivision[t,s];i++)
+					{
+						
+						//add the next 2 divisions
+						int ind;
+						ind = GetDivisionTimeIndex(T.TP.Strains[s].DivLognormalParameters,T.dt);
+						T.GrowDivision[t+ind,s]++;
+						ind = GetDivisionTimeIndex(T.TP.Strains[s].DivLognormalParameters,T.dt);
+						T.GrowDivision[t+ind,s]++;
+						N[s]++;
+						
+					}
+					
+					NTot +=N[s];
+				}
+				t++;
+				
+			}while (t<EndGrowingIndex);
+			
+			T.LastT = t-1;
+			
+			//zero future divitions
+			for(int tt = t; tt<T.GrowDivision.GetLength(0);tt++)
+			{
+				for (int s=0;s<T.TP.NumberOfStrains;s++)
+				{
+					T.GrowDivision[tt,s]=0;
+				}
+			}
+			
+			return T;
+		}
 		
 		 private static int GetDivisionTimeIndex(Utils.LognormalParameters LP,double dt)
 		{

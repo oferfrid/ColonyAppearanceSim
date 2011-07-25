@@ -7,12 +7,15 @@
     <OutputType>Exe</OutputType>
     <RootNamespace>IritSimulation</RootNamespace>
     <AssemblyName>IritSimulation</AssemblyName>
-    <StartArguments>n</StartArguments>
+    <StartArguments>1 true</StartArguments>
     <SourceAnalysisOverrideSettingsFile>C:\Users\Arbel\AppData\Roaming\ICSharpCode/SharpDevelop3.0\Settings.SourceAnalysis</SourceAnalysisOverrideSettingsFile>
     <AllowUnsafeBlocks>False</AllowUnsafeBlocks>
     <NoStdLib>False</NoStdLib>
     <WarningLevel>4</WarningLevel>
     <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+    <SignAssembly>False</SignAssembly>
+    <DelaySign>False</DelaySign>
+    <RunPostBuildEvent>OnBuildSuccess</RunPostBuildEvent>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
     <OutputPath>bin\Debug\</OutputPath>

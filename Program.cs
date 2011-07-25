@@ -13,17 +13,25 @@ namespace IritSimulation
 {
 	class Program
 	{
-		
+		static int  Seed;
+		static bool DebugPrint;
 		
 		public static void Main(string[] args)
 		{
-			Utils.Init(1);
+			Seed = System.Convert.ToInt32(args[0]);
+			DebugPrint =  System.Convert.ToBoolean(args[1]);
+			Utils.Init(Seed);
 			
+			Console.WriteLine("start");
+			DateTime start = DateTime.Now;			
+			RunSim();
+			Console.WriteLine();
+			TimeSpan TS = DateTime.Now - start;
+			Console.WriteLine("Ended in {0} seconds",TS.TotalSeconds);
 			
-			RunSim(1);
 			
 		}
-	
+		
 		private static void RandDemo(double mean,double variance)
 			// testing the rand generator
 		{
@@ -45,57 +53,117 @@ namespace IritSimulation
 		
 
 		
-		private static void RunSim(int SimulationSize)
+		private static void RunSim()
 		{
 			
 			
 			Console.WriteLine("Start");
-		//	Utils.Init(1);
+			//	Utils.Init(1);
 			
 			// Simulation Parameter
-			double maxTime = 1e5 ;	
+			double maxTime = 1e5 ;
 			
-			TubeParameters TP = new TubeParameters(1e6,new StrainParameters[]{ new StrainParameters("Hip",100,0.1,20,1000,21,3),new StrainParameters("WT",100,0.001,20,1000,21,3)});
-							
-			string FName = @"T0.1";
-			string filename = FName+  ".txt";
-			System.IO.StreamWriter SR = new StreamWriter(filename, false);
-
+			TubeParameters TP = new TubeParameters(1e6,new StrainParameters[]{ new StrainParameters("Hip",1e4,0.1,20,1000,21,3),new StrainParameters("WT",1e4,0.001,20,1000,21,3)});
 			
-				Tube tube = new Tube(TP,maxTime);
-		
-				tube = SimulateTube.GrowToNmax(tube);
-								
-				
-				double[,] N = tube.NBacteria;
-				double[] t = tube.Time;
-				
-				for (int i=0; i<N.GetLength(0); i++)
+			double[] KillTime =new double[100];
+			double[] Dilution =new double[100];
+			for(int i=0;i<KillTime.Length;i++)
+			{
+				KillTime[i] = i*1;
+			}
+			for(int i=0;i<Dilution.Length;i++)
+			{
+				Dilution[i] = (i*2+1);
+			}
+			
+			
+			double[,] Extinction = new double[KillTime.Length,Dilution.Length];
+			
+			int maxsycles = 100;
+			for(int ki=0;ki<KillTime.Length;ki++)
+			{
+				for(int di=0;di<Dilution.Length;di++)
 				{
-					SR.Write("{0}\t",t[i]);
-					for (int j=0; j<N.GetLength(1); j++)	
-					{
-					SR.Write("{0}\t",N[i,j]);
-					}
-					SR.WriteLine();
+					PrintPresentege(di+Dilution.Length*ki ,KillTime.Length*Dilution.Length);
 					
+					Tube tube = new Tube(TP,maxTime);
+					tube = SimulateTube.GrowToNmax(tube);
+					int s;
+					Extinction[ki,di] = 0;
+					if (!(ki==0 & di==0))
+					{
+						for(s=0;s<maxsycles;s++)
+						{
+							tube = SimulateTube.Dilut(tube,1.0/Dilution[di]);
+							tube = SimulateTube.Kill(tube,KillTime[ki]);
+							tube = SimulateTube.GrowToNmax(tube);
+							if(tube.LastN[0]/(tube.LastN[0] + tube.LastN[1])>0.8)
+							{
+								Extinction[ki,di] = (100.0-s)/100;
+								break;
+							}
+							
+							if(tube.LastN[0]/(tube.LastN[0] + tube.LastN[1])<0.2)
+							{
+								Extinction[ki,di] = -(100.0-s)/100;
+								break;
+							}
+						}
+						if(DebugPrint)
+						{
+						PrintTube2File("Seed=" + Seed.ToString() + "Kill=" + KillTime[ki].ToString() + "Dilution=" + Dilution[di].ToString(),tube);
+						}
+					}
 				}
+			}
+			
+			Print2DMat2File("Seed=" + Seed.ToString() + "Mat",Extinction);
+			
+		}
 		
-//				SR.WriteLine("{0}",colTime);
-//				PrintPresentege(i,SimulationSize);
 
+		private static void Print2DMat2File(string Filename,double[,] Mat)
+		{
+			
+			Filename+=  ".txt";
+			System.IO.StreamWriter SR = new StreamWriter(Filename, false);
+
+			
+			for (int i=0; i<Mat.GetLength(0); i++)
+			{
+				for (int j=0; j<Mat.GetLength(1); j++)
+				{
+					SR.Write("{0}\t",Mat[i,j]);
+				}
+				SR.WriteLine();
+			}
 			SR.Close();
 
 			
-			Console.Write("Finished!");
 			
-	}
-		
-		
 
+		}
 		
-		
+		private static void PrintTube2File(string Filename,Tube T)
+		{
+			
+			Filename+=  ".txt";
+			System.IO.StreamWriter SR = new StreamWriter(Filename, false);
 
+			double[,] N = T.NBacteria;
+			double[] t = T.Time;
+			
+			for (int i=0; i<N.GetLength(0); i++)
+			{
+				SR.Write("{0}\t",t[i]);
+				for (int j=0; j<N.GetLength(1); j++)
+				{
+					SR.Write("{0}\t",N[i,j]);
+				}
+				SR.WriteLine();
+			}
+			SR.Close();
+		}
 		public static void PrintPresentege(int ind,int from)
 		{
 			//Console.WriteLine(Convert.ToInt32((double)ind/from*1000));
