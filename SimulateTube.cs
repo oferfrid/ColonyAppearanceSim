@@ -14,11 +14,17 @@ namespace IritSimulation
 	/// <summary>
 	/// Description of SimulateTube.
 	/// </summary>
-	public static class SimulateTube
+	public  class SimulateTube
 	{
+		Utils Utils;
 		
-	
-		private static  Tube CommuteLag(Tube T,double GrowKill)
+		
+		public SimulateTube(		int seed)
+		{
+			Utils =new Utils(seed);
+		}
+		
+		private   Tube CommuteLag(Tube T,double GrowKill)
 			
 		{
 			//Get LagTime for each bacteria strain
@@ -50,22 +56,22 @@ namespace IritSimulation
 			
 		}
 		
-		public static  Tube CommuteLagForGrow(Tube T)
+		public   Tube CommuteLagForGrow(Tube T)
 		{
-			 return CommuteLag( T, 1);
+			return CommuteLag( T, 1);
 		}
-		public static  Tube CommuteLagForKill(Tube T)
+		public   Tube CommuteLagForKill(Tube T)
 		{
-			 return CommuteLag( T,-1);
+			return CommuteLag( T,-1);
 		}
 		
-		public static Tube Kill(Tube T,double KillTime)
+		public  Tube Kill(Tube T,double KillTime)
 		{
-		//usin kill whan bacteria divides
-		CommuteLagForKill(T);
-		int KillTimeInIndexs = (int)Math.Round(KillTime/T.dt)  ;
-		
-		//zero future divitions
+			//usin kill whan bacteria divides
+			CommuteLagForKill(T);
+			int KillTimeInIndexs = (int)Math.Round(KillTime/T.dt)  ;
+			
+			//zero future divitions
 			for(int tt = T.LastT + KillTimeInIndexs; tt<T.GrowDivision.GetLength(0);tt++)
 			{
 				for (int s=0;s<T.TP.NumberOfStrains;s++)
@@ -75,8 +81,8 @@ namespace IritSimulation
 			}
 			
 			T.LastT += KillTimeInIndexs;
-		
-		return T;
+			
+			return T;
 		}
 		
 		public static Tube Dilut(Tube T,double ratio)
@@ -96,6 +102,7 @@ namespace IritSimulation
 		
 		
 		public static Tube GrowToNmax(Tube T)
+		public  Tube GrowToNmax(Tube T)
 		{
 			double[] N = new double[T.TP.NumberOfStrains];
 			double NTot = 0;
@@ -200,7 +207,7 @@ namespace IritSimulation
 			return T;
 		}
 		
-		 private static int GetDivisionTimeIndex(Utils.LognormalParameters LP,double dt)
+		private  int GetDivisionTimeIndex(Utils.LognormalParameters LP,double dt)
 		{
 			
 			double DivTime = Utils.RandLogNormal(LP);
@@ -209,7 +216,7 @@ namespace IritSimulation
 			return DivInd;
 		}
 		
-		 private static int GetIndFromdouble(double Time,double dt)
+		private  int GetIndFromdouble(double Time,double dt)
 		{
 			int ind;
 			if (Time == double.PositiveInfinity)

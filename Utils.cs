@@ -14,16 +14,17 @@ namespace IritSimulation
 	/// <summary>
 	/// Description of Utils.
 	/// </summary>
-	public static class Utils
+	public  class Utils
 	{
 		
 		
-		public static System.Random RandomGenerator;
+		public  System.Random RandomGenerator;
+		
 		
 		
 		#region init Parameters
 		
-		public static void Init(int seed)
+		public   Utils(int seed)
 		{
 			RandomGenerator = new Random(seed);
 			
@@ -31,13 +32,13 @@ namespace IritSimulation
 		#endregion
 		#region Rand
 		
-		static public double RandUniform(double x)
+		 public double RandUniform(double x)
 		{
-			double x1=(double)Utils.RandomGenerator.Next()/int.MaxValue*x;
+			double x1=(double)RandomGenerator.Next()/int.MaxValue*x;
 			return x1;
 			
 		}
-		static public double RandUniform(double start,double end)
+		 public double RandUniform(double start,double end)
 		{
 			double x=RandUniform(end-start);
 			x=x+start;
@@ -46,7 +47,7 @@ namespace IritSimulation
 			
 		}
 		
-		static public double RandNormal(double sigma)
+		 public double RandNormal(double sigma)
 		{
 			//Generate normal distubution random value around 0
 			double ro= RandUniform(1);
@@ -56,7 +57,7 @@ namespace IritSimulation
 			
 		}
 		
-		static public double RandNormal(double mean ,double sigma)
+		 public double RandNormal(double mean ,double sigma)
 		{
 			//Generate normal distubution random value around mean
 			double ro= RandUniform(1);
@@ -65,7 +66,7 @@ namespace IritSimulation
 			return r*Math.Sin(teta)+mean;
 			
 		}
-		static public double RandBiNormal(double mean1 ,double sigma1,double mean2 ,double sigma2,double ratio12)
+		 public double RandBiNormal(double mean1 ,double sigma1,double mean2 ,double sigma2,double ratio12)
 		{
 			double randRation = RandUniform(1);
 			double RandBiNormal;
@@ -82,12 +83,12 @@ namespace IritSimulation
 		}
 		
 		
-		static public double RandLogNormal(LognormalParameters LP)
+		 public double RandLogNormal(LognormalParameters LP)
 		{
 			return RandLogNormal(LP.mu,LP.sigma);
 		}
 		
-		static public double RandLogNormal(double tau,double sigma)
+		 public double RandLogNormal(double tau,double sigma)
 		{
 			//Generate LogNormal distubution random value around tau
 			double x0= RandNormal(tau,sigma);
@@ -97,7 +98,7 @@ namespace IritSimulation
 			
 		}
 		
-		static public LognormalParameters  CommuteLognormalParameters(double mean, double variance)
+		 public LognormalParameters  CommuteLognormalParameters(double mean, double variance)
 		{
 			LognormalParameters LP  = new Utils.LognormalParameters();
 			LP.mu = Math.Log(Math.Pow(mean,2)/Math.Sqrt(variance+Math.Pow(mean,2)));
@@ -118,19 +119,19 @@ namespace IritSimulation
 		}
 		
 		
-		static public double RandLogistic(double tau,double N0 ,double Nmax,double tFinal)
+		 public double RandLogistic(double tau,double N0 ,double Nmax,double tFinal)
 		{
 			double x = RandUniform(1);
 			double t= uniform2Logistic( x, tau, N0 , Nmax, tFinal);
 			return t;
 		}
-		static public double RandExponantial(double Nf,double N0)
+		 public double RandExponantial(double Nf,double N0)
 		{
 			double x = RandUniform(1);
 			double gen= uniform2Exponantial( x,Nf,N0);
 			return gen;
 		}
-		static public double RandDecayExponantial(double mu)
+		 public double RandDecayExponantial(double mu)
 		{
 			//mu is positive
 			double x = RandUniform(1);
@@ -138,7 +139,7 @@ namespace IritSimulation
 			return t;
 		}
 		
-		public static double RandBinomial(double n,double pp )
+		public  double RandBinomial(double n,double pp )
 		{
 
 			double pc =double.NaN  ;
@@ -220,13 +221,13 @@ namespace IritSimulation
 		#endregion
 		#region Convertion functions
 		
-		static public double uniform2Logistic(double x,double tau,double N0 ,double Nmax,double tFinal)
+		 public double uniform2Logistic(double x,double tau,double N0 ,double Nmax,double tFinal)
 		{
 			double t = tau*Math.Log((Nmax-Nmax*x+Math.Exp(tFinal/tau)*Nmax*x-N0+Math.Exp(tFinal/tau)*N0+x*N0-Math.Exp(tFinal/tau)*x*N0)/(Nmax-N0+Math.Exp(tFinal/tau)*N0+x*N0-Math.Exp(tFinal/tau)*x*N0));
 			return t;
 		}
 		
-		static public double uniform2Exponantial(double x,double Nf,double N0)
+		 public double uniform2Exponantial(double x,double Nf,double N0)
 		{
 			double Fgen = Math.Log(Nf/N0,2);
 			double gen = (Math.Log((1-Math.Pow(2,Fgen))*(1/(1-Math.Pow(2,Fgen))-x)))/(Math.Log(2));
@@ -235,14 +236,14 @@ namespace IritSimulation
 		}
 		
 		
-		static public double NLogistic(double t,double tau,double N0 ,double Nmax)
+		 public double NLogistic(double t,double tau,double N0 ,double Nmax)
 		{
 			double N = (Math.Exp(t/tau) * Nmax * N0)/(Nmax - N0 + N0*Math.Exp(t/tau));
 			return N;
 		}
 		
 	
-		static public double NExponantial(double gen,double N0)
+		 public double NExponantial(double gen,double N0)
 		{
 			double N = Math.Pow(2,gen)*N0;
 			N=Math.Round(N);
@@ -254,7 +255,7 @@ namespace IritSimulation
 		
 		#region Binomial utils
 		
-		static public double gammln(double xx) {
+		 public double gammln(double xx) {
 
 			double [] cof={76.18009173,-86.50532033,24.01409822,
 				-1.231739516,0.120858003e-2,-0.536382e-5};
