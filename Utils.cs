@@ -29,6 +29,10 @@ namespace IritSimulation
 			RandomGenerator = new Random(seed);
 			
 		}
+		public   Utils()
+		{
+			
+		}
 		#endregion
 		#region Rand
 		

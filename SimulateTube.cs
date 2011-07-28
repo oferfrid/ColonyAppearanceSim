@@ -85,7 +85,7 @@ namespace IritSimulation
 			return T;
 		}
 		
-		public static Tube Dilut(Tube T,double ratio)
+		public  Tube Dilut(Tube T,double ratio)
 		{
 		
 			
@@ -151,7 +151,7 @@ namespace IritSimulation
 			return T;
 		}
 		
-		public static Tube GrowToTime(Tube T,double Time)
+		public  Tube GrowToTime(Tube T,double Time)
 		{
 			int GrowTimeInIndexs = (int)Math.Round(Time/T.dt)  ;
 			int EndGrowingIndex = GrowTimeInIndexs + T.LastT;

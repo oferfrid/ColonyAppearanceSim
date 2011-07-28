@@ -40,11 +40,10 @@ namespace IritSimulation
 			double LagMeanNormal,
 			double LagMeanPersisters,
 			double DivMean,
-			double DivVar,
-			int seed
+			double DivVar
 		)
 		{
-			Utils = new Utils(seed);
+			Utils = new Utils();
 			
 			this.Name = Name;
 			this.No = No  ;
