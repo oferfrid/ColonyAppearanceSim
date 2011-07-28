@@ -26,18 +26,18 @@ namespace IritSimulation
 		
 		public static void Main(string[] args)
 		{
-			Utils.Init(1);
+			//Utils.Init(1);
 			TimeSpan tdiff;
 			DateTime Stime;
 			
 			
-			SimulationSize = 20;
+			SimulationSize = 50;
 			
-			Stime = DateTime.Now;
-			RunSimSerial(SimulationSize);
-		    tdiff =(DateTime.Now-Stime);
-		    Console.WriteLine();
-			Console.WriteLine("finised Sirial in {0} seconds ",tdiff.TotalSeconds );
+//			Stime = DateTime.Now;
+//			RunSimSerial(SimulationSize);
+//		    tdiff =(DateTime.Now-Stime);
+//		    Console.WriteLine();
+//			Console.WriteLine("finised Sirial in {0} seconds ",tdiff.TotalSeconds );
 			
 			Stime = DateTime.Now;
 			RunSimParalel(SimulationSize);
@@ -68,11 +68,15 @@ namespace IritSimulation
 		
 		private static void RunOneSim(object o)
 		{
+			SimulateTube SimulateTube;
 			double maxTime = 1e5 ;
 			try
 			{
+				
+				
 				int sim = (int)o;
-				TubeParameters TP = new TubeParameters(1e6,new StrainParameters[]{ new StrainParameters("Hip",100,0.1,20,1000,21,3),new StrainParameters("WT",100,0.001,20,1000,21,3)});
+				SimulateTube =new SimulateTube(sim);
+				TubeParameters TP = new TubeParameters(1e6,new StrainParameters[]{ new StrainParameters("Hip",100,0.1,20,1000,21,3,sim),new StrainParameters("WT",100,0.001,20,1000,21,3,sim)});
 				
 				string FName = @"ParalelSim" + sim.ToString();
 				string filename = FName+  ".txt";
@@ -115,76 +119,76 @@ namespace IritSimulation
 		
 		
 		
-		private static void RandDemo(double mean,double variance)
-			// testing the rand generator
-		{
-			string FName = @"LogNormalDemo";
-			string filename = FName+  ".txt";
-			System.IO.StreamWriter SR = new StreamWriter(filename, false);
-			double demorand;
-			
-			Utils.LognormalParameters LP = Utils.CommuteLognormalParameters(mean, variance);
-			
-			for (int i=0 ; i<10000;i++)
-			{
-				demorand=Utils.RandLogNormal( LP);
-				SR.WriteLine("{0}",demorand);
-				
-			}
-			SR.Close();
-		}
+//		private static void RandDemo(double mean,double variance)
+//			// testing the rand generator
+//		{
+//			string FName = @"LogNormalDemo";
+//			string filename = FName+  ".txt";
+//			System.IO.StreamWriter SR = new StreamWriter(filename, false);
+//			double demorand;
+//			
+//			Utils.LognormalParameters LP = Utils.CommuteLognormalParameters(mean, variance);
+//			
+//			for (int i=0 ; i<10000;i++)
+//			{
+//				demorand=Utils.RandLogNormal( LP);
+//				SR.WriteLine("{0}",demorand);
+//				
+//			}
+//			SR.Close();
+//		}
 		
 
-		
-		private static void RunSimSerial(int SimulationSize)
-		{
-			
-			
-			//Console.WriteLine("Start");
-			//	Utils.Init(1);
-			
-			// Simulation Parameter
-			double maxTime = 1e5 ;
-			
-			for(int sim=0;sim<SimulationSize;sim++)
-			{
-				
-				TubeParameters TP = new TubeParameters(1e6,new StrainParameters[]{ new StrainParameters("Hip",100,0.1,20,1000,21,3),new StrainParameters("WT",100,0.001,20,1000,21,3)});
-				
-				string FName = @"SirialSim" + sim.ToString();
-				string filename = FName+  ".txt";
-				System.IO.StreamWriter SR = new StreamWriter(filename, false);
-
-				
-				Tube tube = new Tube(TP,maxTime);
-				
-				tube = SimulateTube.GrowToNmax(tube);
-				
-				
-				double[,] N = tube.NBacteria;
-				double[] t = tube.Time;
-				
-				for (int i=0; i<N.GetLength(0); i++)
-				{
-					SR.Write("{0}\t",t[i]);
-					for (int j=0; j<N.GetLength(1); j++)
-					{
-						SR.Write("{0}\t",N[i,j]);
-					}
-					SR.WriteLine();
-					
-				}
-				SR.Close();
-				
-				PrintPresentege(sim,SimulationSize);
-			}
-			
-
-			
-			//Console.Write("Finished!");
-			
-		}
-		
+//		
+//		private static void RunSimSerial(int SimulationSize)
+//		{
+//			
+//			
+//			//Console.WriteLine("Start");
+//			//	Utils.Init(1);
+//			
+//			// Simulation Parameter
+//			double maxTime = 1e5 ;
+//			
+//			for(int sim=0;sim<SimulationSize;sim++)
+//			{
+//				
+//				TubeParameters TP = new TubeParameters(1e6,new StrainParameters[]{ new StrainParameters("Hip",100,0.1,20,1000,21,3),new StrainParameters("WT",100,0.001,20,1000,21,3)});
+//				
+//				string FName = @"SirialSim" + sim.ToString();
+//				string filename = FName+  ".txt";
+//				System.IO.StreamWriter SR = new StreamWriter(filename, false);
+//
+//				
+//				Tube tube = new Tube(TP,maxTime);
+//				
+//				tube = SimulateTube.GrowToNmax(tube);
+//				
+//				
+//				double[,] N = tube.NBacteria;
+//				double[] t = tube.Time;
+//				
+//				for (int i=0; i<N.GetLength(0); i++)
+//				{
+//					SR.Write("{0}\t",t[i]);
+//					for (int j=0; j<N.GetLength(1); j++)
+//					{
+//						SR.Write("{0}\t",N[i,j]);
+//					}
+//					SR.WriteLine();
+//					
+//				}
+//				SR.Close();
+//				
+//				PrintPresentege(sim,SimulationSize);
+//			}
+//			
+//
+//			
+//			//Console.Write("Finished!");
+//			
+//		}
+//		
 		
 
 		

@@ -28,6 +28,9 @@ namespace IritSimulation
 		public double DivMean;
 		public double DivVar;
 		
+		Utils Utils;
+		
+		
 		public Utils.LognormalParameters DivLognormalParameters ;
 		
 		public StrainParameters(
@@ -37,9 +40,12 @@ namespace IritSimulation
 			double LagMeanNormal,
 			double LagMeanPersisters,
 			double DivMean,
-			double DivVar
+			double DivVar,
+			int seed
 		)
 		{
+			Utils = new Utils(seed);
+			
 			this.Name = Name;
 			this.No = No  ;
 			this.PersistersLevel =  PersistersLevel ;
