@@ -44,7 +44,7 @@ namespace IritSimulation
 			{
 				LastN[s] = TP.Strains[s].No;
 			}
-			
+
 		}
 		
 		public  double[] Time

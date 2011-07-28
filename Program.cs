@@ -65,14 +65,14 @@ namespace IritSimulation
 			
 			TubeParameters TP = new TubeParameters(1e6,new StrainParameters[]{ new StrainParameters("Hip",1e4,0.1,20,1000,21,3),new StrainParameters("WT",1e4,0.001,20,1000,21,3)});
 			
-			int res = 20;
-			int maxsycles = 50;
+			int res = 50;
+			int maxsycles = 10;
 			
 			double[] KillTime =new double[res];
 			double[] Dilution =new double[res];
 			
-			double[] KillFromTo = {0,60};
-			double[] DilutionFromTo = {1,300};
+			double[] KillFromTo = {0,200};
+			double[] DilutionFromTo = {1,1000};
 			
 			
 			for(int i=0;i<KillTime.Length;i++)
@@ -105,13 +105,13 @@ namespace IritSimulation
 							tube = SimulateTube.Dilut(tube,1.0/Dilution[di]);
 							tube = SimulateTube.Kill(tube,KillTime[ki]);
 							tube = SimulateTube.GrowToNmax(tube);
-							if(tube.LastN[0]/(tube.LastN[0] + tube.LastN[1])>0.8)
+							if(tube.LastN[0]/(tube.LastN[0] + tube.LastN[1])>0.7)
 							{
 								Extinction[ki,di] = (100.0-s)/100;
 								break;
 							}
 							
-							if(tube.LastN[0]/(tube.LastN[0] + tube.LastN[1])<0.2)
+							if(tube.LastN[0]/(tube.LastN[0] + tube.LastN[1])<0.3)
 							{
 								Extinction[ki,di] = -(100.0-s)/100;
 								break;
