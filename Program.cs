@@ -8,6 +8,7 @@
  */
 using System;
 using System.IO;
+using System.Threading;
 
 namespace IritSimulation
 {
@@ -15,9 +16,11 @@ namespace IritSimulation
 	{
 		static int  Seed;
 		static bool DebugPrint;
+		static double maxTime = 1e5 ;
 		
 		public static void Main(string[] args)
 		{
+			//read cmd params
 			Seed = System.Convert.ToInt32(args[0]);
 			DebugPrint =  System.Convert.ToBoolean(args[1]);
 			Utils.Init(Seed);
@@ -52,6 +55,18 @@ namespace IritSimulation
 		}
 		
 
+		private static void RunSimParalel(int SimulationSize)
+		{
+			
+			_numerOfThreadsNotYetCompleted = SimulationSize;
+			for (int threadNumber = 0; threadNumber < SimulationSize; threadNumber++)
+			{
+				ThreadPool.QueueUserWorkItem(new WaitCallback(RunOneSim),(object)threadNumber);
+			}
+
+			_doneEvent.WaitOne();
+		}
+		
 		
 		private static void RunSim()
 		{
@@ -92,28 +107,9 @@ namespace IritSimulation
 			{
 				for(int di=0;di<Dilution.Length;di++)
 				{
-					//PrintPresentege(di+Dilution.Length*ki ,KillTime.Length*Dilution.Length);
 					
-					Tube tube = new Tube(TP,maxTime);
-					tube = SimulateTube.GrowToNmax(tube);
-					int s;
-					Extinction[ki,di] = 0;
-					if (!(ki==0 & di==0))
-					{
-						for(s=0;s<maxsycles;s++)
-						{
-							PrintPresentege((di+Dilution.Length*ki)*maxsycles + s ,KillTime.Length*Dilution.Length*maxsycles);
-							tube = SimulateTube.Dilut(tube,1.0/Dilution[di]);
-							tube = SimulateTube.Kill(tube,KillTime[ki]);
-							tube = SimulateTube.GrowToNmax(tube);
-						}
-						
-						Extinction[ki,di] = (double)tube.LastN[0]/(tube.LastN[0]+tube.LastN[1]);
-						if(DebugPrint)
-						{
-							PrintTube2File("Seed=" + Seed.ToString() + "Kill=" + KillTime[ki].ToString("0.0") + "Dilution=" + Dilution[di].ToString("0.0"),tube);
-						}
-					}
+					
+					
 				}
 			}
 			
@@ -123,6 +119,34 @@ namespace IritSimulation
 			Console.Beep(800,1000);
 		}
 		
+		
+				
+		private void RunOneSimulation(object o)
+		{
+			Tube tube = new Tube(TP,maxTime);
+			tube = SimulateTube.GrowToNmax(tube);
+			int s;
+			Extinction[ki,di] = 0;
+			if (!(ki==0 & di==0))
+			{
+
+				
+				for(s=0;s<maxsycles;s++)
+				{
+					PrintPresentege((di+Dilution.Length*ki)*maxsycles + s ,KillTime.Length*Dilution.Length*maxsycles);
+					tube = SimulateTube.Dilut(tube,1.0/Dilution[di]);
+					tube = SimulateTube.Kill(tube,KillTime[ki]);
+					tube = SimulateTube.GrowToNmax(tube);
+				}
+				
+				Extinction[ki,di] = (double)tube.LastN[0]/(tube.LastN[0]+tube.LastN[1]);
+				
+				if(DebugPrint)
+				{
+					PrintTube2File("Seed=" + Seed.ToString() + "Kill=" + KillTime[ki].ToString("0.0") + "Dilution=" + Dilution[di].ToString("0.0"),tube);
+				}
+			}
+		}
 
 		private static void Print2DMat2File(string Filename,double[,] Mat)
 		{
@@ -149,10 +173,10 @@ namespace IritSimulation
 			System.IO.StreamWriter SR = new StreamWriter(Filename, false);
 			SR.Write("0\t");
 			for (int j=0; j<Mat.GetLength(1); j++)
-				{
-					SR.Write("{0}\t",HeadInd1[j]);
-				}
-				SR.WriteLine();
+			{
+				SR.Write("{0}\t",HeadInd1[j]);
+			}
+			SR.WriteLine();
 			
 			
 			

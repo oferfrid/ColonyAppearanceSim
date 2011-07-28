@@ -101,8 +101,7 @@ namespace IritSimulation
 		}
 		
 		
-		public static Tube GrowToNmax(Tube T)
-		public  Tube GrowToNmax(Tube T)
+			public  Tube GrowToNmax(Tube T)
 		{
 			double[] N = new double[T.TP.NumberOfStrains];
 			double NTot = 0;

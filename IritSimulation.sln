@@ -12,6 +12,8 @@ Global
 		Release|Any CPU = Release|Any CPU
 		Debug|BPC = Debug|BPC
 		Release|BPC = Release|BPC
+		Debug|x86 = Debug|x86
+		Release|x86 = Release|x86
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{0513E105-FCC3-4B1C-9FD1-08AFB7813BFD}.Debug|Any CPU.Build.0 = Debug|Any CPU
@@ -26,5 +28,9 @@ Global
 		{21B187BE-85C3-479D-9919-9E46320D9A3D}.Debug|BPC.ActiveCfg = Debug|BPC
 		{21B187BE-85C3-479D-9919-9E46320D9A3D}.Release|BPC.Build.0 = Release|BPC
 		{21B187BE-85C3-479D-9919-9E46320D9A3D}.Release|BPC.ActiveCfg = Release|BPC
+		{21B187BE-85C3-479D-9919-9E46320D9A3D}.Debug|x86.Build.0 = Debug|x86
+		{21B187BE-85C3-479D-9919-9E46320D9A3D}.Debug|x86.ActiveCfg = Debug|x86
+		{21B187BE-85C3-479D-9919-9E46320D9A3D}.Release|x86.Build.0 = Release|x86
+		{21B187BE-85C3-479D-9919-9E46320D9A3D}.Release|x86.ActiveCfg = Release|x86
 	EndGlobalSection
 EndGlobal
