@@ -22,7 +22,7 @@ namespace IritSimulation
 		static TubeParameters TP = new TubeParameters(1e6,new StrainParameters[]{ new StrainParameters("Hip",1e4,0.1,20,1000,21,3),new StrainParameters("WT",1e4,0.001,20,1000,21,3)});
 		
 		static int res = 100;
-		static int maxsycles = 20;
+		static int maxsycles = 40;
 		
 		static double[] KillTime;
 		static double[] Dilution ;
@@ -46,16 +46,16 @@ namespace IritSimulation
 			Dilution =new double[res];
 			
 			double[] KillFromTo = {0,50};
-			double[] DilutionFromTo = {1,1000};
+			double[] DilutionFromTo = {1,10};
 			
 			
 			for(int i=0;i<KillTime.Length;i++)
 			{
-				KillTime[i] = KillFromTo[0] + (KillFromTo[1] - KillFromTo[0])*i/(res-1);
+				KillTime[i] = KillFromTo[0] + (KillFromTo[1] - KillFromTo[0])*i/(KillTime.Length-1);
 			}
 			for(int i=0;i<Dilution.Length;i++)
 			{
-				Dilution[i] = DilutionFromTo[0] + (DilutionFromTo[1] - DilutionFromTo[0])*i/(res-1);
+				Dilution[i] = DilutionFromTo[0] + (DilutionFromTo[1] - DilutionFromTo[0])*i/(Dilution.Length-1);
 			}
 			
 			SimulateTube SimulateTube = new SimulateTube(Seed);
@@ -72,8 +72,8 @@ namespace IritSimulation
 			
 			
 			TimeSpan TS = DateTime.Now - start;
-			Console.WriteLine("Ended in {0} seconds",TS.TotalSeconds);
-			Console.ReadKey(false);
+			Console.WriteLine("Ended in {0} minuts",TS.TotalMinutes);
+			Console.WriteLine();
 			
 		}
 		
