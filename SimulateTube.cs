@@ -87,21 +87,21 @@ namespace IritSimulation
 		
 		public  Tube Dilut(Tube T,double ratio)
 		{
-		
+			
 			
 			for (int s=0;s<T.TP.NumberOfStrains;s++)
-				{
-				 double  NewN = Utils.RandBinomial(T.LastN[s],ratio);
-				 T.GrowDivision[T.LastT,s]-=T.LastN[s] - NewN;
-				}
+			{
+				double  NewN = Utils.RandBinomial(T.LastN[s],ratio);
+				T.GrowDivision[T.LastT,s]-=T.LastN[s] - NewN;
+			}
 			
 			T.LastT++;
-		
-		return T;
+			
+			return T;
 		}
 		
 		
-			public  Tube GrowToNmax(Tube T)
+		public  Tube GrowToNmax(Tube T)
 		{
 			double[] N = new double[T.TP.NumberOfStrains];
 			double NTot = 0;
@@ -117,21 +117,58 @@ namespace IritSimulation
 				NTot = 0;
 				for (int s=0;s<T.TP.NumberOfStrains;s++)
 				{
+					double[] Mutants = new double[T.TP.NumberOfStrains];
+					double SumMutants =0 ;
+					//zero all mutans
+					for (int ms=0;ms<T.TP.NumberOfStrains;ms++)
+					{Mutants[ms] = 0;}
 					
-					for(int i=0;i<T.GrowDivision[t,s];i++)
+					//calculate number of division results a mutation.
+					for(int ms=0;ms<T.TP.Strains[s].StrainMutationParameters.Length;ms++)
+					{
+						Mutants[T.TP.Strains[s].StrainMutationParameters[ms].Tostrain] = Utils.RandBinomial(T.GrowDivision[t,s],T.TP.Strains[s].StrainMutationParameters[ms].MutationRatePerDivition);
+						SumMutants+= Mutants[T.TP.Strains[s].StrainMutationParameters[ms].Tostrain] ;
+					}
+					
+					
+					//normal divisions
+					for(int i=0;i<T.GrowDivision[t,s]-SumMutants;i++)
 					{
 						
 						//add the next 2 divisions
 						int ind;
 						ind = GetDivisionTimeIndex(T.TP.Strains[s].DivLognormalParameters,T.dt);
 						T.GrowDivision[t+ind,s]++;
+						
 						ind = GetDivisionTimeIndex(T.TP.Strains[s].DivLognormalParameters,T.dt);
 						T.GrowDivision[t+ind,s]++;
 						N[s]++;
 						
 					}
 					
-					NTot +=N[s];
+					NTot +=	N[s];
+					
+					//mutation creating  divitions.
+					for(int ms=0;ms<T.TP.Strains[s].StrainMutationParameters.Length;ms++)
+					{
+						for(int i=0;i<Mutants[ms];i++)
+						{
+							
+							//add the next 2 divisions
+							int ind;
+							//normal cell
+							ind = GetDivisionTimeIndex(T.TP.Strains[s].DivLognormalParameters,T.dt);
+							T.GrowDivision[t+ind,s]++;
+							//Mutants cell
+							ind = GetDivisionTimeIndex(T.TP.Strains[s].DivLognormalParameters,T.dt);
+							T.GrowDivision[t+ind,ms]++;
+							N[ms]++;
+							
+						}
+						
+						NTot +=	N[ms];
+					}
+					
 				}
 				t++;
 				
@@ -150,6 +187,7 @@ namespace IritSimulation
 			
 			return T;
 		}
+		
 		
 		public  Tube GrowToTime(Tube T,double Time)
 		{
@@ -206,6 +244,12 @@ namespace IritSimulation
 			return T;
 		}
 		
+		
+		private  double DivMutation(double MutationRate,double N)
+		{
+			double mutants = Utils.RandBinomial(N,MutationRate);
+			return mutants;
+		}
 		private  int GetDivisionTimeIndex(Utils.LognormalParameters LP,double dt)
 		{
 			

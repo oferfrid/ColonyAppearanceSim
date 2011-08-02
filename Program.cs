@@ -19,19 +19,22 @@ namespace IritSimulation
 		static bool DebugPrint;
 		static double maxTime = 1e5 ;
 		
-		static TubeParameters TP = new TubeParameters(1e6,new StrainParameters[]{ new StrainParameters("Hip",1e4,0.1,20,1000,21,3),new StrainParameters("WT",1e4,0.001,20,1000,21,3)});
+		static TubeParameters TP = new TubeParameters(1e6,new StrainParameters[]{
+		                                              	new StrainParameters("Hip",0,0.1,20,1000,21,3),
+		                                              	new StrainParameters("WT",1e4,0.001,20,1000,21,3,new StrainMutationParameters[]{new StrainMutationParameters(0,1e-5,0)})
+		                                              });
 		
-		static int res = 100;
-		static int maxsycles = 40;
+		//static int res = 10;
+		static int maxsycles = 30;
 		
-		static double[] KillTime;
-		static double[] Dilution ;
-		static double[,] Extinction;
-		
-		
+		//static double[] KillTime;
+		//static double[] Dilution ;
+		//static double[,] Extinction;
 		
 		
-		static int numerOfThreadsNotYetCompleted = 0;
+		
+		
+		//static int numerOfThreadsNotYetCompleted = 0;
 		private static ManualResetEvent _doneEvent = new ManualResetEvent(false);
 		
 		public static void Main(string[] args)
@@ -40,6 +43,33 @@ namespace IritSimulation
 			Seed = System.Convert.ToInt32(args[0]);
 			DebugPrint =  System.Convert.ToBoolean(args[1]);
 			
+			
+			Tube tube = new Tube(TP,maxTime);
+			SimulateTube SimulateTube = new SimulateTube(Seed);
+			
+			tube = SimulateTube.GrowToNmax(tube);
+			int s;
+
+			
+
+			
+			for(s=0;s<maxsycles;s++)
+			{
+				tube = SimulateTube.Dilut(tube,1.0/100);
+				tube = SimulateTube.Kill(tube,200);
+				tube = SimulateTube.GrowToNmax(tube);
+				PrintPresentege(s,maxsycles);
+			}
+			
+			
+			PrintTube2File(@"testme",tube);
+			
+		}
+		
+		
+		/*
+		private static void runMetrixMain()
+		{
 			
 			//init global vars
 			KillTime =new double[res];
@@ -76,7 +106,6 @@ namespace IritSimulation
 			Console.WriteLine();
 			
 		}
-		
 		
 		private static  void RunSimParalel()
 		{
@@ -199,7 +228,7 @@ namespace IritSimulation
 			}
 		}
 		
-		
+		 */
 		
 		#region Print2file
 		private static void Print2DMat2File(string Filename,double[,] Mat)

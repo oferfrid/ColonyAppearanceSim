@@ -27,11 +27,36 @@ namespace IritSimulation
 		//division parameters
 		public double DivMean;
 		public double DivVar;
+		public StrainMutationParameters[] StrainMutationParameters;
 		
 		Utils Utils;
 		
 		
 		public Utils.LognormalParameters DivLognormalParameters ;
+		
+		public StrainParameters(
+			string Name,
+			double No,
+			double PersistersLevel,
+			double LagMeanNormal,
+			double LagMeanPersisters,
+			double DivMean,
+			double DivVar,
+			StrainMutationParameters[] StrainMutationParameters
+		)
+		{
+			Utils = new Utils();
+			
+			this.Name = Name;
+			this.No = No  ;
+			this.PersistersLevel =  PersistersLevel ;
+			this.LagMeanNormal =  LagMeanNormal ;
+			this.LagMeanPersisters =  LagMeanPersisters ;
+			this.DivMean = DivMean  ;
+			this.DivVar = DivVar  ;
+			DivLognormalParameters = Utils.CommuteLognormalParameters(DivMean,DivVar);
+			this.StrainMutationParameters = StrainMutationParameters ;
+		}
 		
 		public StrainParameters(
 			string Name,
@@ -53,7 +78,30 @@ namespace IritSimulation
 			this.DivMean = DivMean  ;
 			this.DivVar = DivVar  ;
 			DivLognormalParameters = Utils.CommuteLognormalParameters(DivMean,DivVar);
+			StrainMutationParameters= new StrainMutationParameters[0];
 		}
 
+
 	}
+	
+	public struct StrainMutationParameters
+	{
+		public int Tostrain;
+		public double MutationRatePerDivition;
+		public double MutationRatePerTimeUnit;
+		
+		public StrainMutationParameters(
+			int Tostrain,
+			double MutationRatePerDivition,
+			double MutationRatePerTimeUnit
+		)
+		{
+			this.Tostrain = Tostrain;
+			this.MutationRatePerDivition = MutationRatePerDivition;
+			this.MutationRatePerTimeUnit=MutationRatePerTimeUnit;
+		}
+		
+	}
+	
+	
 }
