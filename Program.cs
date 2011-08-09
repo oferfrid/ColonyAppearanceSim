@@ -24,7 +24,7 @@ namespace IritSimulation
 		                                              	new StrainParameters("HipMutant",0,0.1,20,1000,0,0,21,3)
 		                                              });
 		
-		static int res = 100;
+		static int res = 15;
 		static int maxsycles = 50;
 		
 		static double[] KillTime;
@@ -42,7 +42,11 @@ namespace IritSimulation
 			//read cmd params
 			Seed = System.Convert.ToInt32(args[0]);
 			DebugPrint =  System.Convert.ToBoolean(args[1]);
+			Run4Metrix();
 			
+		}
+			private static  void RunForOne()
+		{
 			Extinction = new double[1,1];
 			KillTime = new double[] {200};
 			Dilution = new double[]{1};
@@ -56,8 +60,8 @@ namespace IritSimulation
 			KillTime =new double[res];
 			Dilution =new double[res];
 			
-			double[] KillFromTo = {0,50};
-			double[] DilutionFromTo = {1,10};
+			double[] KillFromTo = {0,200};
+			double[] DilutionFromTo = {1,200};
 			
 			
 			for(int i=0;i<KillTime.Length;i++)
