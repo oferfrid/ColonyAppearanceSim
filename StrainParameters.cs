@@ -23,6 +23,8 @@ namespace IritSimulation
 		//lag parameters
 		public double LagMeanNormal;
 		public double LagMeanPersisters;
+		public	double KillLagMeanNormal;
+		public	double KillLagMeanPersisters;
 		
 		//division parameters
 		public double DivMean;
@@ -40,6 +42,9 @@ namespace IritSimulation
 			double PersistersLevel,
 			double LagMeanNormal,
 			double LagMeanPersisters,
+			double KillLagMeanNormal,
+			double KillLagMeanPersisters,
+			
 			double DivMean,
 			double DivVar,
 			StrainMutationParameters[] StrainMutationParameters
@@ -52,6 +57,9 @@ namespace IritSimulation
 			this.PersistersLevel =  PersistersLevel ;
 			this.LagMeanNormal =  LagMeanNormal ;
 			this.LagMeanPersisters =  LagMeanPersisters ;
+			this.KillLagMeanNormal = KillLagMeanNormal;
+			this.KillLagMeanPersisters = KillLagMeanPersisters;
+			
 			this.DivMean = DivMean  ;
 			this.DivVar = DivVar  ;
 			DivLognormalParameters = Utils.CommuteLognormalParameters(DivMean,DivVar);
@@ -64,6 +72,8 @@ namespace IritSimulation
 			double PersistersLevel,
 			double LagMeanNormal,
 			double LagMeanPersisters,
+			double KillLagMeanNormal,
+			double KillLagMeanPersisters,
 			double DivMean,
 			double DivVar
 		)
@@ -75,6 +85,9 @@ namespace IritSimulation
 			this.PersistersLevel =  PersistersLevel ;
 			this.LagMeanNormal =  LagMeanNormal ;
 			this.LagMeanPersisters =  LagMeanPersisters ;
+			this.KillLagMeanNormal = KillLagMeanNormal;
+			this.KillLagMeanPersisters = KillLagMeanPersisters;
+			
 			this.DivMean = DivMean  ;
 			this.DivVar = DivVar  ;
 			DivLognormalParameters = Utils.CommuteLognormalParameters(DivMean,DivVar);

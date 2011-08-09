@@ -20,8 +20,8 @@ namespace IritSimulation
 		static double maxTime = 1e5 ;
 		
 		static TubeParameters TP = new TubeParameters(1e6,new StrainParameters[]{
-		                                              	new StrainParameters("Hip",0,0.1,20,1000,21,3),
-		                                              	new StrainParameters("WT",1e4,0.001,20,1000,21,3,new StrainMutationParameters[]{new StrainMutationParameters(0,1e-5,0)})
+		                                              	new StrainParameters("Hip",1e4,0.1,20,1000,20,1000,21,3,new StrainMutationParameters[]{new StrainMutationParameters(1,1e-7,0)}),
+		                                              	new StrainParameters("HipMutant",0,0.1,20,1000,0,0,21,3)
 		                                              });
 		
 		static int res = 100;
@@ -43,7 +43,16 @@ namespace IritSimulation
 			Seed = System.Convert.ToInt32(args[0]);
 			DebugPrint =  System.Convert.ToBoolean(args[1]);
 			
-				//init global vars
+			Extinction = new double[1,1];
+			KillTime = new double[] {200};
+			Dilution = new double[]{1};
+			RunOneSimulation((object)new SimulationParameters(0,0));
+		}
+		
+		
+		private static  void Run4Metrix()
+		{
+			//init global vars
 			KillTime =new double[res];
 			Dilution =new double[res];
 			
@@ -79,14 +88,8 @@ namespace IritSimulation
 			
 			
 			
-			
-			
-			
 		}
 		
-		
-
-	
 		private static  void RunSimParalel()
 		{
 			
@@ -125,7 +128,7 @@ namespace IritSimulation
 					tube = SimulateTube.GrowToNmax(tube);
 					int s;
 					Extinction[ki,di] = 0;
-					if (!(ki==0 & di==0))
+					if (!(KillTime[ki]==0 & Dilution[di]==1))
 					{
 
 						
@@ -208,7 +211,7 @@ namespace IritSimulation
 			}
 		}
 		
-	
+		
 		
 		#region Print2file
 		private static void Print2DMat2File(string Filename,double[,] Mat)

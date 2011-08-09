@@ -34,22 +34,40 @@ namespace IritSimulation
 				double N0Persisters = Math.Round((double)T.LastN[s]*T.TP.Strains[s].PersistersLevel);
 				double N0Normal = T.LastN[s] - N0Persisters;
 				
-				double mulagNormal = 1.0/T.TP.Strains[s].LagMeanNormal;
-				double mulagPersisters = 1.0/T.TP.Strains[s].LagMeanPersisters;
+				double mulagNormal;
+				double mulagPersisters;
 				
-				//put normal first divition
-				for(int i=0;i<N0Normal;i++)
+				if (GrowKill == 1)//grow
 				{
-					double LagTime = Utils.RandDecayExponantial(mulagNormal) ;
-					int DivInd = GetIndFromdouble(LagTime,T.dt);
-					T.GrowDivision[DivInd+T.LastT,s]+=GrowKill;
+					mulagNormal = 1.0/T.TP.Strains[s].LagMeanNormal;
+					mulagPersisters = 1.0/T.TP.Strains[s].LagMeanPersisters;
 				}
-				//put Persisters first divition
-				for(int i=0;i<N0Persisters;i++)
+				else//kill
 				{
-					double LagTime = Utils.RandDecayExponantial(mulagPersisters);
-					int DivInd = GetIndFromdouble(LagTime,T.dt);
-					T.GrowDivision[DivInd+T.LastT,s]+=GrowKill;
+					mulagNormal = 1.0/T.TP.Strains[s].KillLagMeanNormal;
+					mulagPersisters = 1.0/T.TP.Strains[s].KillLagMeanPersisters;
+				}
+				
+				
+				if (mulagNormal!=double.PositiveInfinity)
+				{
+					//put normal first divition
+					for(int i=0;i<N0Normal;i++)
+					{
+						double LagTime = Utils.RandDecayExponantial(mulagNormal) ;
+						int DivInd = GetIndFromdouble(LagTime,T.dt);
+						T.GrowDivision[DivInd+T.LastT,s]+=GrowKill;
+					}
+				}
+				if (mulagPersisters!=double.PositiveInfinity)
+				{
+					//put Persisters first divition
+					for(int i=0;i<N0Persisters;i++)
+					{
+						double LagTime = Utils.RandDecayExponantial(mulagPersisters);
+						int DivInd = GetIndFromdouble(LagTime,T.dt);
+						T.GrowDivision[DivInd+T.LastT,s]+=GrowKill;
+					}
 				}
 			}
 			return T;
@@ -114,7 +132,7 @@ namespace IritSimulation
 			
 			do
 			{
-				NTot = 0;
+		
 				for (int s=0;s<T.TP.NumberOfStrains;s++)
 				{
 					double[] Mutants = new double[T.TP.NumberOfStrains];
@@ -126,6 +144,8 @@ namespace IritSimulation
 					//calculate number of division results a mutation.
 					for(int ms=0;ms<T.TP.Strains[s].StrainMutationParameters.Length;ms++)
 					{
+						
+						
 						Mutants[T.TP.Strains[s].StrainMutationParameters[ms].Tostrain] = Utils.RandBinomial(T.GrowDivision[t,s],T.TP.Strains[s].StrainMutationParameters[ms].MutationRatePerDivition);
 						SumMutants+= Mutants[T.TP.Strains[s].StrainMutationParameters[ms].Tostrain] ;
 					}
@@ -146,10 +166,10 @@ namespace IritSimulation
 						
 					}
 					
-					NTot +=	N[s];
+				
 					
 					//mutation creating  divitions.
-					for(int ms=0;ms<T.TP.Strains[s].StrainMutationParameters.Length;ms++)
+					for(int ms=0;ms<Mutants.Length;ms++)
 					{
 						for(int i=0;i<Mutants[ms];i++)
 						{
@@ -166,11 +186,17 @@ namespace IritSimulation
 							
 						}
 						
-						NTot +=	N[ms];
+						
 					}
 					
 				}
 				t++;
+				
+				NTot = 0;
+				for (int s=0;s<T.TP.NumberOfStrains;s++)
+				{
+					NTot +=	N[s];
+				}
 				
 			}while (NTot<T.TP.Nmax);
 			
