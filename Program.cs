@@ -20,12 +20,12 @@ namespace IritSimulation
 		static double maxTime = 1e5 ;
 		
 		static TubeParameters TP = new TubeParameters(1e6,new StrainParameters[]{
-		                                              	new StrainParameters("WT",1e4,0.001,20,1000,20,1000,21,3,new StrainMutationParameters[]{new StrainMutationParameters(1,1e-7,0)}),
+		                                              	new StrainParameters("WT",1e4,0.001,20,1000,20,1000,21,3,new StrainMutationParameters[]{new StrainMutationParameters(1,1e-7,0.1,0)}),
 		                                              	new StrainParameters("HipMutant",0,0.1,20,1000,0,0,21,3)
 		                                              });
 		
-		static int res = 15;
-		static int maxsycles = 100;
+		static int res = 2;
+		static int maxsycles = 10;
 		
 		static double[] KillTime;
 		static double[] Dilution ;

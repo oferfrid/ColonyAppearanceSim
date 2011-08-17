@@ -41,6 +41,7 @@ namespace IritSimulation
 				{
 					mulagNormal = 1.0/T.TP.Strains[s].LagMeanNormal;
 					mulagPersisters = 1.0/T.TP.Strains[s].LagMeanPersisters;
+					
 				}
 				else//kill
 				{
@@ -49,14 +50,17 @@ namespace IritSimulation
 				}
 				
 				
+				
+				
+				
 				if (mulagNormal!=double.PositiveInfinity)
 				{
 					//put normal first divition
 					for(int i=0;i<N0Normal;i++)
 					{
-						double LagTime = Utils.RandDecayExponantial(mulagNormal) ;
-						int DivInd = GetIndFromdouble(LagTime,T.dt);
-						T.GrowDivision[DivInd+T.LastT,s]+=GrowKill;
+						double LagTime =GetLagTime(mulagNormal) ;
+					T=AddLagWhithTimeMutation( T, s, LagTime, GrowKill);
+						
 					}
 				}
 				if (mulagPersisters!=double.PositiveInfinity)
@@ -64,9 +68,8 @@ namespace IritSimulation
 					//put Persisters first divition
 					for(int i=0;i<N0Persisters;i++)
 					{
-						double LagTime = Utils.RandDecayExponantial(mulagPersisters);
-						int DivInd = GetIndFromdouble(LagTime,T.dt);
-						T.GrowDivision[DivInd+T.LastT,s]+=GrowKill;
+						double LagTime = GetLagTime(mulagPersisters);
+						T=AddLagWhithTimeMutation( T, s, LagTime, GrowKill);
 					}
 				}
 			}
@@ -74,6 +77,34 @@ namespace IritSimulation
 			
 		}
 		
+		//TODO: whrong!!!! this Kill bacteria is not duing mutation!
+		private Tube AddLagWhithTimeMutation(Tube T,int s,double LagTime,double GrowKill)
+		{
+				//add time mutations
+						for(int ms = 0;ms<T.TP.Strains[s].StrainMutationParameters.Length;ms++)
+						{
+							if(MutationByTime(LagTime,T.TP.Strains[s].StrainMutationParameters[ms].MutationRatePerTimeUnit))
+							{
+								
+								int DivInd = GetIndFromdouble(LagTime,T.dt);
+								T.GrowDivision[DivInd+T.LastT,T.TP.Strains[s].StrainMutationParameters[ms].Tostrain]+=GrowKill;
+								break;//only one mutant is aplicatble (shuld be the first one but...)
+							}
+							else
+							{
+								int DivInd = GetIndFromdouble(LagTime,T.dt);
+								T.GrowDivision[DivInd+T.LastT,s]+=GrowKill;
+							}
+						}
+						return T;
+						
+		}
+		
+		private double GetLagTime(double mulag)
+		{
+			double LagTime = Utils.RandDecayExponantial(mulag) ;
+			return LagTime;
+		}
 		public   Tube CommuteLagForGrow(Tube T)
 		{
 			return CommuteLag( T, 1);
@@ -132,7 +163,7 @@ namespace IritSimulation
 			
 			do
 			{
-		
+				
 				for (int s=0;s<T.TP.NumberOfStrains;s++)
 				{
 					double[] Mutants = new double[T.TP.NumberOfStrains];
@@ -156,17 +187,19 @@ namespace IritSimulation
 					{
 						
 						//add the next 2 divisions
-						int ind;
-						ind = GetDivisionTimeIndex(T.TP.Strains[s].DivLognormalParameters,T.dt);
+						int ind;double DivisionTime ;
+						DivisionTime = GetDivisionTime(T.TP.Strains[s].DivLognormalParameters);
+						ind = GetIndFromdouble(DivisionTime,T.dt);
 						T.GrowDivision[t+ind,s]++;
 						
-						ind = GetDivisionTimeIndex(T.TP.Strains[s].DivLognormalParameters,T.dt);
+						DivisionTime = GetDivisionTime(T.TP.Strains[s].DivLognormalParameters);
+						ind = GetIndFromdouble(DivisionTime,T.dt);
 						T.GrowDivision[t+ind,s]++;
 						N[s]++;
 						
 					}
 					
-				
+					
 					
 					//mutation creating  divitions.
 					for(int ms=0;ms<Mutants.Length;ms++)
@@ -175,12 +208,15 @@ namespace IritSimulation
 						{
 							
 							//add the next 2 divisions
-							int ind;
+							int ind;double DivisionTime ;
 							//normal cell
-							ind = GetDivisionTimeIndex(T.TP.Strains[s].DivLognormalParameters,T.dt);
+							DivisionTime = GetDivisionTime(T.TP.Strains[s].DivLognormalParameters);
+							ind = GetIndFromdouble(DivisionTime,T.dt);
 							T.GrowDivision[t+ind,s]++;
+							
 							//Mutants cell
-							ind = GetDivisionTimeIndex(T.TP.Strains[s].DivLognormalParameters,T.dt);
+							DivisionTime = GetDivisionTime(T.TP.Strains[s].DivLognormalParameters);
+							ind = GetIndFromdouble(DivisionTime,T.dt);
 							T.GrowDivision[t+ind,ms]++;
 							N[ms]++;
 							
@@ -215,8 +251,11 @@ namespace IritSimulation
 		}
 		
 		
+		
+		//TODO: mutation
 		public  Tube GrowToTime(Tube T,double Time)
 		{
+			throw new Exception("The function is not compitble with mutatiuon");
 			int GrowTimeInIndexs = (int)Math.Round(Time/T.dt)  ;
 			int EndGrowingIndex = GrowTimeInIndexs + T.LastT;
 			
@@ -241,10 +280,14 @@ namespace IritSimulation
 					{
 						
 						//add the next 2 divisions
-						int ind;
-						ind = GetDivisionTimeIndex(T.TP.Strains[s].DivLognormalParameters,T.dt);
+						int ind;double DivisionTime ;
+						//normal cell
+						DivisionTime = GetDivisionTime(T.TP.Strains[s].DivLognormalParameters);
+						ind = GetIndFromdouble(DivisionTime,T.dt);
 						T.GrowDivision[t+ind,s]++;
-						ind = GetDivisionTimeIndex(T.TP.Strains[s].DivLognormalParameters,T.dt);
+						
+						DivisionTime = GetDivisionTime(T.TP.Strains[s].DivLognormalParameters);
+						ind = GetIndFromdouble(DivisionTime,T.dt);
 						T.GrowDivision[t+ind,s]++;
 						N[s]++;
 						
@@ -276,14 +319,26 @@ namespace IritSimulation
 			double mutants = Utils.RandBinomial(N,MutationRate);
 			return mutants;
 		}
-		private  int GetDivisionTimeIndex(Utils.LognormalParameters LP,double dt)
+		//private  int GetDivisionTimeIndex(Utils.LognormalParameters LP,double dt)
+		//{
+		
+		//	double DivTime = Utils.RandLogNormal(LP);
+		
+		//	int DivInd = GetIndFromdouble(DivTime,dt);
+		//	return DivInd;
+		//}
+		
+		private  double GetDivisionTime(Utils.LognormalParameters LP)
 		{
 			
 			double DivTime = Utils.RandLogNormal(LP);
 			
-			int DivInd = GetIndFromdouble(DivTime,dt);
-			return DivInd;
+			return DivTime;
 		}
+		
+		
+		
+		
 		
 		private  int GetIndFromdouble(double Time,double dt)
 		{
@@ -303,7 +358,14 @@ namespace IritSimulation
 			return ind;
 		}
 		
-		
+		private bool MutationByTime(double t,double mu)
+		{
+			double lambda = Math.Log(0.1/(0.1-mu));
+			double MutantTime = Utils.RandDecayExponantial(lambda);
+			bool IsMutant = MutantTime < t;
+			return IsMutant;
+			
+		}
 		
 	}
 }

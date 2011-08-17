@@ -101,8 +101,21 @@ namespace IritSimulation
 	{
 		public int Tostrain;
 		public double MutationRatePerDivition;
+		public double MutationRatePerTimeUnitStress;
 		public double MutationRatePerTimeUnit;
 		
+		public StrainMutationParameters(
+			int Tostrain,
+			double MutationRatePerDivition,
+			double MutationRatePerTimeUnitStress,
+			double MutationRatePerTimeUnit
+		)
+		{
+			this.Tostrain = Tostrain;
+			this.MutationRatePerDivition = MutationRatePerDivition;
+			this.MutationRatePerTimeUnitStress=MutationRatePerTimeUnitStress;
+			this.MutationRatePerTimeUnit=MutationRatePerTimeUnit;
+		}
 		public StrainMutationParameters(
 			int Tostrain,
 			double MutationRatePerDivition,
@@ -111,6 +124,7 @@ namespace IritSimulation
 		{
 			this.Tostrain = Tostrain;
 			this.MutationRatePerDivition = MutationRatePerDivition;
+			this.MutationRatePerTimeUnitStress=MutationRatePerTimeUnit;
 			this.MutationRatePerTimeUnit=MutationRatePerTimeUnit;
 		}
 		
