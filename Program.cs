@@ -19,184 +19,63 @@ namespace IritSimulation
 		static bool DebugPrint;
 		static double maxTime = 1e5 ;
 		
-		static TubeParameters TP = new TubeParameters(1e6,new StrainParameters[]{
-		                                              	new StrainParameters("Hip",0,0.1,20,1000,21,3),
-		                                              	new StrainParameters("WT",1e4,0.001,20,1000,21,3,new StrainMutationParameters[]{new StrainMutationParameters(0,1e-5,0)})
-		                                              });
+		 
 		
-		static int res = 100;
-		static int maxsycles = 50;
-		
-		static double[] KillTime;
-		static double[] Dilution ;
-		static double[,] Extinction;
-		
-		
-		
-		
+			
 		static int numerOfThreadsNotYetCompleted = 0;
 		private static ManualResetEvent _doneEvent = new ManualResetEvent(false);
 		
 		public static void Main(string[] args)
 		{
 			//read cmd params
-			Seed = System.Convert.ToInt32(args[0]);
-			DebugPrint =  System.Convert.ToBoolean(args[1]);
+			//Seed = System.Convert.ToInt32(args[0]);
+			//DebugPrint =  System.Convert.ToBoolean(args[1]);
 			
-				//init global vars
-			KillTime =new double[res];
-			Dilution =new double[res];
+			//SimulationParameters PS = (SimulationParameters)o;
+				
 			
-			double[] KillFromTo = {0,50};
-			double[] DilutionFromTo = {1,10};
-			
-			
-			for(int i=0;i<KillTime.Length;i++)
+			double[] lag = new double[100];
+			for(int i=0;i<lag.Length;i++)
 			{
-				KillTime[i] = KillFromTo[0] + (KillFromTo[1] - KillFromTo[0])*i/(KillTime.Length-1);
-			}
-			for(int i=0;i<Dilution.Length;i++)
-			{
-				Dilution[i] = DilutionFromTo[0] + (DilutionFromTo[1] - DilutionFromTo[0])*i/(Dilution.Length-1);
+				lag[i] = ((8.0*60.0 - 30.0)/(20-1))*i + 30.0;
 			}
 			
-			SimulateTube SimulateTube = new SimulateTube(Seed);
-			Extinction = new double[KillTime.Length,Dilution.Length];
-			
-			DateTime start = DateTime.Now;
-			RunSimParalel();
-			//RunSim();
-			
-			Print2DMat2File("EvoSeed=" + Seed.ToString() + "Mat",Extinction);
-			Print2DMatH2File("EvoSeed=" + Seed.ToString() + "Mat_H",Extinction,KillTime,Dilution);
-			Console.Beep(800,1000);
-			Console.Beep(800,1000);
 			
 			
-			TimeSpan TS = DateTime.Now - start;
-			Console.WriteLine("Ended in {0} minuts",TS.TotalMinutes);
-			Console.WriteLine();
+			string Filename=  @"time2grow_4H.txt";
+			System.IO.StreamWriter SR = new StreamWriter(Filename, false);
+			int NumberOfSimulations = 10;
 			
-			
-			
-			
-			
-			
-		}
-		
-		
-
-	
-		private static  void RunSimParalel()
-		{
-			
-			for(int ki=0;ki<KillTime.Length;ki++)
+			for(int i=0;i<lag.Length;i++)
 			{
-				for(int di=0;di<Dilution.Length;di++)
+				TubeParameters TP = new TubeParameters(1e7,new StrainParameters[]{
+				                                       	new StrainParameters("WT",1e5,0,lag[i],1000,21,3)
+		                                              });
+				
+				SR.Write(lag[i]);
+				for(int s=0;s<NumberOfSimulations;s++)
 				{
-					Extinction[ki,di] = 0;
-					
-					if (!(ki==0 & di==0))
-					{
-						
-						Interlocked.Increment(ref numerOfThreadsNotYetCompleted);
-						ThreadPool.QueueUserWorkItem(new WaitCallback(RunOneSimulation),(object)new SimulationParameters(ki,di));
-					}
-
-					
-				}
-				
-			}
-			_doneEvent.WaitOne();
-			
-		}
-		
-		
-		private static void RunSim()
-		{
-			
-			SimulateTube SimulateTube = new SimulateTube(Seed);
-			for(int ki=0;ki<KillTime.Length;ki++)
-			{
-				for(int di=0;di<Dilution.Length;di++)
-				{
-					
-					Tube tube = new Tube(TP,maxTime);
-					tube = SimulateTube.GrowToNmax(tube);
-					int s;
-					Extinction[ki,di] = 0;
-					if (!(ki==0 & di==0))
-					{
-
-						
-						for(s=0;s<maxsycles;s++)
-						{
-							PrintPresentege((di+Dilution.Length*ki)*maxsycles + s ,KillTime.Length*Dilution.Length*maxsycles);
-							tube = SimulateTube.Dilut(tube,1.0/Dilution[di]);
-							tube = SimulateTube.Kill(tube,KillTime[ki]);
-							tube = SimulateTube.GrowToNmax(tube);
-						}
-						
-						Extinction[ki,di] = (double)tube.LastN[0]/(tube.LastN[0]+tube.LastN[1]);
-						
-						if(DebugPrint)
-						{
-							PrintTube2File("Seed=" + Seed.ToString() + "Kill=" + KillTime[ki].ToString("0.0") + "Dilution=" + Dilution[di].ToString("0.0"),tube);
-						}
-					}
-					
-				}
-			}
-			
-		}
-		
-		
-		
-		private static void RunOneSimulation(object o)
-		{
-			try
-			{
-				SimulationParameters PS = (SimulationParameters)o;
-				
-				int di = PS.di;
-				int ki = PS.ki;
-				
 				Tube tube = new Tube(TP,maxTime);
-				SimulateTube SimulateTube = new SimulateTube(Seed);
-				
+				SimulateTube SimulateTube = new SimulateTube(s);
+				double KillTime =240;
+				tube = SimulateTube.Kill(tube,KillTime);
 				tube = SimulateTube.GrowToNmax(tube);
-				int s;
-
+				SR.Write("\t{0}",tube.LastT);
 				
-
-				
-				for(s=0;s<maxsycles;s++)
-				{
-					tube = SimulateTube.Dilut(tube,1.0/Dilution[di]);
-					tube = SimulateTube.Kill(tube,KillTime[ki]);
-					tube = SimulateTube.GrowToNmax(tube);
+				    //PrintTube2File(@"test" + i.ToString(),tube);
+				    PrintPresentege(i*NumberOfSimulations + s,lag.Length*NumberOfSimulations);
 				}
-				
-				Extinction[ki,di] = (double)tube.LastN[0]/(tube.LastN[0]+tube.LastN[1]);
-				
-				if(DebugPrint)
-				{
-					PrintTube2File("Seed=" + Seed.ToString() + "Kill=" + KillTime[ki].ToString("0.0") + "Dilution=" + Dilution[di].ToString("0.0"),tube);
-				}
-				
+				SR.WriteLine();
 			}
-			finally
-			{
-				
-				//Console.WriteLine(numerOfThreadsNotYetCompleted);
-				PrintPresentege(KillTime.Length*Dilution.Length-numerOfThreadsNotYetCompleted ,KillTime.Length*Dilution.Length);
-				if (Interlocked.Decrement(ref numerOfThreadsNotYetCompleted) == 0)
-				{
-					_doneEvent.Set();
-				}
-			}
+			
+			
+			SR.Close();
+
 		}
 		
+		
+
+
 		private struct SimulationParameters
 		{
 			public int ki;
