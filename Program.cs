@@ -33,11 +33,11 @@ namespace IritSimulation
 			
 			//SimulationParameters PS = (SimulationParameters)o;
 				
-			
-			double[] lag = new double[100];
+			int res = 100;
+			double[] lag = new double[res];
 			for(int i=0;i<lag.Length;i++)
 			{
-				lag[i] = ((8.0*60.0 - 30.0)/(20-1))*i + 30.0;
+				lag[i] = ((2000 - 30.0)/(res-1))*i + 30.0;
 			}
 			
 			
@@ -62,7 +62,7 @@ namespace IritSimulation
 				tube = SimulateTube.GrowToNmax(tube);
 				SR.Write("\t{0}",tube.LastT);
 				
-				    //PrintTube2File(@"test" + i.ToString(),tube);
+				PrintTube2File(@"test" + lag[i].ToString(),tube);
 				    PrintPresentege(i*NumberOfSimulations + s,lag.Length*NumberOfSimulations);
 				}
 				SR.WriteLine();
