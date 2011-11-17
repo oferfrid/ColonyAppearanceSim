@@ -7,7 +7,7 @@
     <OutputType>Exe</OutputType>
     <RootNamespace>IritSimulation</RootNamespace>
     <AssemblyName>IritSimulation</AssemblyName>
-    <StartArguments>1 true</StartArguments>
+    <StartArguments>20 true</StartArguments>
     <SourceAnalysisOverrideSettingsFile>C:\Users\Arbel\AppData\Roaming\ICSharpCode/SharpDevelop3.0\Settings.SourceAnalysis</SourceAnalysisOverrideSettingsFile>
     <AllowUnsafeBlocks>False</AllowUnsafeBlocks>
     <NoStdLib>False</NoStdLib>

@@ -198,7 +198,7 @@ namespace IritSimulation
 					NTot +=	N[s];
 				}
 				
-			}while (NTot<T.TP.Nmax);
+			}while (NTot<T.TP.Nmax && t<T.GrowDivision.GetLength(0));
 			
 			T.LastT = t-1;
 			
