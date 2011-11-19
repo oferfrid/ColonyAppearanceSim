@@ -24,11 +24,12 @@ namespace IritSimulation
 		
 		
 		static int res = 20;
-		static int Repetitions =5;
+		static int Repetitions =100;
 		static int maxsycles = 200;
 		
 		static double[] KillTime;
 		static double[,] Cycle2Fixsation;
+		static double[,] Cycle2Mutant;
 		
 		static double LagTS ;
 		
@@ -81,12 +82,15 @@ namespace IritSimulation
 			
 			
 			Cycle2Fixsation = new double[KillTime.Length,Repetitions];
+			Cycle2Mutant  = new double[KillTime.Length,Repetitions];
 			
 			DateTime start = DateTime.Now;
 			RunSimParalel();
 			//RunSim();
 			
-			Print2DMat2File("EvoLag" + LagTS + "Mat",Cycle2Fixsation);
+			Print2DMat2File("EvoLag" + LagTS + "_Cycle2Fixsation",Cycle2Fixsation);
+			Print2DMat2File("EvoLag" + LagTS + "_Cycle2Mutant",Cycle2Mutant);
+			
 			//Print2DMatH2File("EvoLag20Seed=" + Seed.ToString() + "Mat_H",Cycle2Fixsation,KillTime,Dilution);
 			Console.Beep(800,1000);
 			Console.Beep(800,1000);
@@ -108,6 +112,7 @@ namespace IritSimulation
 				for(int r=0;r<Repetitions;r++)
 				{
 					Cycle2Fixsation[ki,r] = 0;
+					Cycle2Mutant[ki,r] = 0;
 					
 					
 						Interlocked.Increment(ref numerOfThreadsNotYetCompleted);
@@ -142,6 +147,12 @@ namespace IritSimulation
 					tube = SimulateTube.Kill(tube,KillTime[ki]);
 					tube = SimulateTube.GrowToNmax(tube);
 					
+					//arize of mutant
+					if(tube.LastN[1]>0)
+					{
+						Cycle2Mutant[ki,r]=s;
+					}
+					
 					//test 4 fixsasion or extiction.
 					if(((double)tube.LastN[1]/(tube.LastN[0]+tube.LastN[1])>0.7) || double.IsNaN((double)tube.LastN[1]/(tube.LastN[0]+tube.LastN[1])))
 					{
@@ -161,7 +172,7 @@ namespace IritSimulation
 				
 				if(DebugPrint)
 				{
-					PrintTube2File("Seed=" + r.ToString() + "Kill=" + KillTime[ki].ToString("0.0") ,tube);
+					PrintTube2File("Lag=" + LagTS.ToString() + "Seed=" + r.ToString() + "Kill=" + KillTime[ki].ToString("0.00") ,tube);
 				}
 				
 			}
