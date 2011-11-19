@@ -19,58 +19,40 @@ namespace IritSimulation
 		static bool DebugPrint;
 		static double maxTime = 1e5 ;
 		
-		 
-		
-			
-		static int numerOfThreadsNotYetCompleted = 0;
-		private static ManualResetEvent _doneEvent = new ManualResetEvent(false);
-		
 		public static void Main(string[] args)
 		{
 			//read cmd params
-			//Seed = System.Convert.ToInt32(args[0]);
+			Seed = System.Convert.ToInt32(args[0]);
 			//DebugPrint =  System.Convert.ToBoolean(args[1]);
 			
 			//SimulationParameters PS = (SimulationParameters)o;
 				
-			int res = 100;
-			double[] lag = new double[res];
-			for(int i=0;i<lag.Length;i++)
-			{
-				lag[i] = ((2000 - 30.0)/(res-1))*i + 30.0;
-			}
+			double KillTime = 240;
 			
-			
-			
-			string Filename=  @"time2grow_4H.txt";
-			System.IO.StreamWriter SR = new StreamWriter(Filename, false);
-			int NumberOfSimulations = 10;
-			
-			for(int i=0;i<lag.Length;i++)
-			{
-				TubeParameters TP = new TubeParameters(1e7,new StrainParameters[]{
-				                                       	new StrainParameters("WT",1e5,0,lag[i],1000,21,3)
+			TubeParameters TP1 = new TubeParameters(1e7,new StrainParameters[]{
+				                                       	new StrainParameters("WT",1e7,0,20,1000,21,3)
 		                                              });
-				
-				SR.Write(lag[i]);
-				for(int s=0;s<NumberOfSimulations;s++)
-				{
-				Tube tube = new Tube(TP,maxTime);
-				SimulateTube SimulateTube = new SimulateTube(s);
-				double KillTime =240;
-				tube = SimulateTube.Kill(tube,KillTime);
-				tube = SimulateTube.GrowToNmax(tube);
-				SR.Write("\t{0}",tube.LastT);
-				
-				PrintTube2File(@"test" + lag[i].ToString(),tube);
-				    PrintPresentege(i*NumberOfSimulations + s,lag.Length*NumberOfSimulations);
-				}
-				SR.WriteLine();
-			}
+			TubeParameters TP2 = new TubeParameters(1e7,new StrainParameters[]{
+				                                       	new StrainParameters("WT",1e7,0,240,1000,21,3)
+		                                              });
+			
+			Tube tube;
+			SimulateTube SimulateTube ;
+			
+			 tube = new Tube(TP1,maxTime);
+			 SimulateTube = new SimulateTube(Seed);
+			tube = SimulateTube.Kill(tube,KillTime);
+			tube = SimulateTube.GrowToNmax(tube);
+			PrintTube2File("WT",tube);
 			
 			
-			SR.Close();
-
+			 tube = new Tube(TP2,maxTime);
+			 SimulateTube = new SimulateTube(Seed);
+			tube = SimulateTube.Kill(tube,KillTime);
+			tube = SimulateTube.GrowToNmax(tube);
+			PrintTube2File("Lag240",tube);
+			
+			
 		}
 		
 		
