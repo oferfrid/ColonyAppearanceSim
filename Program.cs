@@ -37,14 +37,14 @@ namespace IritSimulation
 			double[] lag = new double[res];
 			for(int i=0;i<lag.Length;i++)
 			{
-				lag[i] = ((2000 - 30.0)/(res-1))*i + 30.0;
+				lag[i] = ((200 - 30.0)/(res-1))*i + 30.0;
 			}
 			
 			
 			
-			string Filename=  @"time2grow_4H.txt";
+			string Filename=  @"time2grow_4H_30_200.txt";
 			System.IO.StreamWriter SR = new StreamWriter(Filename, false);
-			int NumberOfSimulations = 10;
+			int NumberOfSimulations = 2;
 			
 			for(int i=0;i<lag.Length;i++)
 			{
