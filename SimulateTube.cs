@@ -19,7 +19,7 @@ namespace IritSimulation
 		Utils Utils;
 		
 		
-		public SimulateTube(		int seed)
+		public SimulateTube(int seed)
 		{
 			Utils =new Utils(seed);
 		}

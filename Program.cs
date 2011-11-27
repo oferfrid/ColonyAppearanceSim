@@ -98,6 +98,7 @@ namespace IritSimulation
 		
 		private static  void RunSimParalel()
 		{
+			int sid=0;
 			
 			for(int mi=0;mi<MutationRates.Length;mi++)
 			{
@@ -108,7 +109,7 @@ namespace IritSimulation
 					
 					
 					Interlocked.Increment(ref numerOfThreadsNotYetCompleted);
-					ThreadPool.QueueUserWorkItem(new WaitCallback(RunOneSimulation),(object)new SimulationParameters(mi,r));
+					ThreadPool.QueueUserWorkItem(new WaitCallback(RunOneSimulation),(object)new SimulationParameters(mi,r,sid++));
 					
 					
 				}
@@ -126,8 +127,9 @@ namespace IritSimulation
 			{
 				SimulationParameters PS = (SimulationParameters)o;
 				
-				int r = PS.sid;
+				int rep = PS.sid;
 				int mi = PS.mi;
+				int sid = PS.sid;
 			
 				double MutationRate = MutationRates[mi];
 					
@@ -150,7 +152,7 @@ namespace IritSimulation
 					//arize of mutant
 					if(tube.LastN[1]>0)
 					{
-						Cycle2Mutant[mi,r]=s;
+						Cycle2Mutant[mi,rep]=s;
 					}
 					
 					//test 4 fixsasion or extiction.
@@ -163,19 +165,19 @@ namespace IritSimulation
 				
 				if(double.IsNaN((double)tube.LastN[1]/(tube.LastN[0]+tube.LastN[1])))
 				{
-					Cycle2Fixsation[mi,r] = 0;
+					Cycle2Fixsation[mi,rep] = 0;
 				}
 				else
 				{
 					if(((double)tube.LastN[1]/(tube.LastN[0]+tube.LastN[1])>0.7))
 					{
-					Cycle2Fixsation[mi,r] = s;
+					Cycle2Fixsation[mi,rep] = s;
 					}
 				}
 				
 				if(DebugPrint)
 				{
-					PrintTube2File("Lag=" + LagTS.ToString() + "Seed=" + r.ToString() + "MutationRate=" + MutationRate.ToString("e") ,tube);
+					PrintTube2File("Lag=" + LagTS.ToString() + "Repetition=" + rep.ToString() + "MutationRate=" + MutationRate.ToString("e") ,tube);
 				}
 				
 				SimulateTube = null;
@@ -197,10 +199,12 @@ namespace IritSimulation
 		private struct SimulationParameters
 		{
 			public int mi;
+			public int rep;
 			public int sid;
-			public SimulationParameters( int mi, int sid)
+			public SimulationParameters( int mi, int rep,int sid)
 			{
 				this.mi = mi;
+				this.rep = rep;
 				this.sid = sid;
 			}
 		}
