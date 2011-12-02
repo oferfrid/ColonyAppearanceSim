@@ -18,12 +18,12 @@ namespace IritSimulation
 		static bool DebugPrint;
 		
 		
-		static double maxTime = 1e5 ;
+		static double maxTime = 1e6 ;
 		
 		
-		static int res = 10;
-		static int Repetitions =10;
-		static int maxsycles = 100;
+		static int res = 20;
+		static int Repetitions =40;
+		static int maxsycles = 1000;
 		
 		
 		static private System.Object lockTem = new System.Object();
@@ -38,7 +38,7 @@ namespace IritSimulation
 		
 		static double Nmax = 1e7;
 		
-		static double[] MutationRateFromTo = {7,7.5}; //10^-(XX)
+		static double[] MutationRateFromTo = {7,9}; //10^-(XX)
 		
 		private static ManualResetEvent _doneEvent = new ManualResetEvent(false);
 
@@ -98,7 +98,7 @@ namespace IritSimulation
 		
 		private static  void RunSimParalel()
 		{
-			int sid=0;
+			int sid=50;
 			
 			for(int mi=0;mi<MutationRates.Length;mi++)
 			{
@@ -127,7 +127,7 @@ namespace IritSimulation
 			{
 				SimulationParameters PS = (SimulationParameters)o;
 				
-				int rep = PS.sid;
+				int rep = PS.rep;
 				int mi = PS.mi;
 				int sid = PS.sid;
 			
