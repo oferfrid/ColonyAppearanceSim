@@ -27,6 +27,7 @@ namespace IritSimulation
 		
 		
 		static private System.Object lockTem = new System.Object();
+		static private System.Object lockFile = new System.Object();
 
 		
 		static double[] MutationRates;
@@ -44,6 +45,9 @@ namespace IritSimulation
 
 		static int numerOfThreadsNotYetCompleted;
 		
+		
+		static string simResultsFilename;
+		
 		public static void Main(string[] args)
 		{
 			
@@ -54,11 +58,17 @@ namespace IritSimulation
 			}
 			
 			LagTS = System.Convert.ToDouble(args[0]);
-						
+			
+			
+			//delete the file
+			simResultsFilename = "EvoLag" + LagTS + "__Cycle2MutantCycle2Fixsation";
+			FileInfo FI= new FileInfo(simResultsFilename);
+			FI.Delete();
+			
 			Run4Metrix();
 			
 		}
-				
+		
 		
 		private static  void Run4Metrix()
 		{
@@ -100,9 +110,10 @@ namespace IritSimulation
 		{
 			int sid=50;
 			
-			for(int mi=0;mi<MutationRates.Length;mi++)
+			
+			for(int r=0;r<Repetitions;r++)
 			{
-				for(int r=0;r<Repetitions;r++)
+				for(int mi=0;mi<MutationRates.Length;mi++)
 				{
 					Cycle2Fixsation[mi,r] = 0;
 					Cycle2Mutant[mi,r] = 0;
@@ -130,13 +141,13 @@ namespace IritSimulation
 				int rep = PS.rep;
 				int mi = PS.mi;
 				int sid = PS.sid;
-			
+				
 				double MutationRate = MutationRates[mi];
-					
+				
 				TubeParameters TP = new TubeParameters(Nmax,new StrainParameters[]{
-				                        	new StrainParameters("WT",1e4,0,LagTS,1000,LagTS,1000,21,3,new StrainMutationParameters[]{new StrainMutationParameters(1,MutationRate,0)}),
-			                        	new StrainParameters("ResistanceMutant",0,0,LagTS,1000,0,0,21,3)
-			                        });
+				                                       	new StrainParameters("WT",1e4,0,LagTS,1000,LagTS,1000,21,3,new StrainMutationParameters[]{new StrainMutationParameters(1,MutationRate,0)}),
+				                                       	new StrainParameters("ResistanceMutant",0,0,LagTS,1000,0,0,21,3)
+				                                       });
 				
 				
 				Tube tube = new Tube(TP,maxTime);
@@ -171,7 +182,7 @@ namespace IritSimulation
 				{
 					if(((double)tube.LastN[1]/(tube.LastN[0]+tube.LastN[1])>0.7))
 					{
-					Cycle2Fixsation[mi,rep] = s;
+						Cycle2Fixsation[mi,rep] = s;
 					}
 				}
 				
@@ -182,7 +193,7 @@ namespace IritSimulation
 				
 				SimulateTube = null;
 				
-				
+				PrintMutFix2File( simResultsFilename, mi, rep);
 			}
 			finally
 			{
@@ -257,6 +268,27 @@ namespace IritSimulation
 			}
 			SR.Close();
 		}
+		
+		
+		private static void PrintMutFix2File(string Filename,int mi,int rep)
+
+		{
+			
+			string DFilename =  Filename + ".txt";
+			
+			
+			
+			lock (lockFile)
+			{
+				System.IO.StreamWriter DSR = new StreamWriter(DFilename,true);
+				DSR.WriteLine("{0}\t{1}\t{2}\t{3}\t",mi,rep,Cycle2Mutant[mi,rep],Cycle2Fixsation[mi,rep]);
+				DSR.Close();
+			}
+			
+			
+		}
+
+		
 
 		#endregion
 
