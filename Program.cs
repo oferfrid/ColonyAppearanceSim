@@ -21,25 +21,29 @@ namespace IritSimulation
 		static double maxTime = 1e6 ;
 		
 		
-		static int res = 20;
-		static int Repetitions =40;
-		static int maxsycles = 1000;
+		static int resLagTS = 5;
+		static int resAMPTime = 5;
+		static int maxsycles = 100;
 		
 		
 		static private System.Object lockTem = new System.Object();
 		static private System.Object lockFile = new System.Object();
 
 		
-		static double[] MutationRates;
 		static double[,] Cycle2Fixsation;
-		static double[,] Cycle2Mutant;
-		
-		static double LagTS ;
 		
 		
 		static double Nmax = 1e7;
 		
-		static double[] MutationRateFromTo = {7,9}; //10^-(XX)
+		static double[] LagTSFromTo = {0.5,10}; //
+		static double[] AMPTimeFromTo = {0.2,15}; //
+		
+		static double[] LagTS = new double[resLagTS];
+		static double[] AMPTime = new double[resAMPTime];
+		
+		
+		
+		static int BaseSid;
 		
 		private static ManualResetEvent _doneEvent = new ManualResetEvent(false);
 
@@ -57,11 +61,12 @@ namespace IritSimulation
 				DebugPrint =  System.Convert.ToBoolean(args[1]);
 			}
 			
-			LagTS = System.Convert.ToDouble(args[0]);
+			
+			BaseSid = System.Convert.ToInt32(args[0]);
 			
 			
 			//delete the file
-			simResultsFilename = "EvoLag" + LagTS + "__Cycle2MutantCycle2Fixsation";
+			simResultsFilename = "LagFixsation" + BaseSid.ToString();
 			FileInfo FI= new FileInfo(simResultsFilename);
 			FI.Delete();
 			
@@ -73,25 +78,30 @@ namespace IritSimulation
 		private static  void Run4Metrix()
 		{
 			//init global vars
-			MutationRates =new double[res];
 			
 			
-			for(int i=0;i<MutationRates.Length;i++)
+			
+			
+			for (int i=0;i<resLagTS;i++)
 			{
-				MutationRates[i] = Math.Pow(10.0,-(MutationRateFromTo[0] + (MutationRateFromTo[1] - MutationRateFromTo[0])*i/(MutationRates.Length-1)));
+				LagTS[i] = LagTSFromTo[0] + (LagTSFromTo[1] - LagTSFromTo[0])/(resLagTS-1)*i;
 			}
 			
+			for (int i=0;i<resLagTS;i++)
+			{
+				AMPTime[i] =AMPTimeFromTo[0] + (AMPTimeFromTo[1] - AMPTimeFromTo[0])/(resAMPTime-1)*i;
+			}
 			
+
 			
-			Cycle2Fixsation = new double[MutationRates.Length,Repetitions];
-			Cycle2Mutant  = new double[MutationRates.Length,Repetitions];
+			Cycle2Fixsation = new double[resLagTS,resAMPTime];
 			
 			DateTime start = DateTime.Now;
 			RunSimParalel();
 			//RunSim();
 			
-			Print2DMat2File("EvoLag" + LagTS + "_Cycle2Fixsation",Cycle2Fixsation);
-			Print2DMat2File("EvoLag" + LagTS + "_Cycle2Mutant",Cycle2Mutant);
+			//Print2DMat2File("EvoLag" + LagTS + "_Cycle2Fixsation",Cycle2Fixsation);
+			//Print2DMat2File("EvoLag" + LagTS + "_Cycle2Mutant",Cycle2Mutant);
 			
 			//Print2DMatH2File("EvoLag20Seed=" + Seed.ToString() + "Mat_H",Cycle2Fixsation,KillTime,Dilution);
 			Console.Beep(800,1000);
@@ -108,19 +118,18 @@ namespace IritSimulation
 		
 		private static  void RunSimParalel()
 		{
-			int sid=50;
+			int sid=BaseSid;
 			
 			
-			for(int r=0;r<Repetitions;r++)
+			for(int k=0;k<resLagTS;k++)
 			{
-				for(int mi=0;mi<MutationRates.Length;mi++)
+				for(int t=0;t<resAMPTime;t++)
 				{
-					Cycle2Fixsation[mi,r] = 0;
-					Cycle2Mutant[mi,r] = 0;
+					Cycle2Fixsation[k,t] = 0;
 					
 					
 					Interlocked.Increment(ref numerOfThreadsNotYetCompleted);
-					ThreadPool.QueueUserWorkItem(new WaitCallback(RunOneSimulation),(object)new SimulationParameters(mi,r,sid++));
+					ThreadPool.QueueUserWorkItem(new WaitCallback(RunOneSimulation),(object)new SimulationParameters(k,t,sid++));
 					
 					
 				}
@@ -131,43 +140,39 @@ namespace IritSimulation
 		}
 		
 		
-		
+	
 		private static void RunOneSimulation(object o)
 		{
 			try
 			{
 				SimulationParameters PS = (SimulationParameters)o;
 				
-				int rep = PS.rep;
-				int mi = PS.mi;
+				int AmpTimeInd = PS.AmpTimeInd;
+				int LagTSInd = PS.LagTSInd;
 				int sid = PS.sid;
 				
-				double MutationRate = MutationRates[mi];
+				
+				double wtLagTS = 0.5*60;
+			
 				
 				TubeParameters TP = new TubeParameters(Nmax,new StrainParameters[]{
-				                                       	new StrainParameters("WT",1e4,0,LagTS,1000,LagTS,1000,21,3,new StrainMutationParameters[]{new StrainMutationParameters(1,MutationRate,0)}),
-				                                       	new StrainParameters("ResistanceMutant",0,0,LagTS,1000,0,0,21,3)
+				                                       	new StrainParameters("WT",1e4,0,wtLagTS*60.0,1000,wtLagTS,1000,21,3),
+				                                       	new StrainParameters("LagMutant",1e4,0, LagTS[LagTSInd]*60.0,1000,0,0,21,3)
 				                                       });
 				
 				
 				Tube tube = new Tube(TP,maxTime);
-				SimulateTube SimulateTube = new SimulateTube(PS.sid);
+				SimulateTube SimulateTube = new SimulateTube(sid);
 				
 				tube = SimulateTube.GrowToNmax(tube);
 				int s;
 				for(s=0;s<maxsycles;s++)
 				{
-					tube = SimulateTube.Kill(tube,240);
+					tube = SimulateTube.Kill(tube,AMPTime[AmpTimeInd]);
 					tube = SimulateTube.GrowToNmax(tube);
 					
-					//arize of mutant
-					if(tube.LastN[1]>0)
-					{
-						Cycle2Mutant[mi,rep]=s;
-					}
-					
 					//test 4 fixsasion or extiction.
-					if(((double)tube.LastN[1]/(tube.LastN[0]+tube.LastN[1])>0.7) || double.IsNaN((double)tube.LastN[1]/(tube.LastN[0]+tube.LastN[1])))
+					if(((double)tube.LastN[1]/(tube.LastN[0]+tube.LastN[1])>0.7) ||((double)tube.LastN[1]/(tube.LastN[0]+tube.LastN[1])<0.3) || double.IsNaN((double)tube.LastN[1]/(tube.LastN[0]+tube.LastN[1])))
 					{
 						break;
 					}
@@ -176,30 +181,30 @@ namespace IritSimulation
 				
 				if(double.IsNaN((double)tube.LastN[1]/(tube.LastN[0]+tube.LastN[1])))
 				{
-					Cycle2Fixsation[mi,rep] = 0;
+					Cycle2Fixsation[LagTSInd,AmpTimeInd] = 0;
 				}
 				else
 				{
 					if(((double)tube.LastN[1]/(tube.LastN[0]+tube.LastN[1])>0.7))
 					{
-						Cycle2Fixsation[mi,rep] = s;
+						Cycle2Fixsation[LagTSInd,AmpTimeInd] = s;
 					}
 				}
 				
 				if(DebugPrint)
 				{
-					PrintTube2File("Lag=" + LagTS.ToString() + "Repetition=" + rep.ToString() + "MutationRate=" + MutationRate.ToString("e") ,tube);
+					PrintTube2File(string.Format("FixsationLagTS={0:0.00}_AmpTime={1:0.00}_sid={2}",LagTS[LagTSInd],AMPTime[AmpTimeInd],sid),tube);
 				}
 				
 				SimulateTube = null;
 				
-				PrintMutFix2File( simResultsFilename, mi, rep);
+				//PrintMutFix2File( simResultsFilename, mi, rep);
 			}
 			finally
 			{
 				
 				//Console.WriteLine(numerOfThreadsNotYetCompleted);
-				PrintPresentege(MutationRates.Length*Repetitions-numerOfThreadsNotYetCompleted ,MutationRates.Length*Repetitions);
+				PrintPresentege(resAMPTime*resLagTS -numerOfThreadsNotYetCompleted ,resAMPTime*resLagTS);
 				if (Interlocked.Decrement(ref numerOfThreadsNotYetCompleted) == 0)
 				{
 					_doneEvent.Set();
@@ -209,13 +214,13 @@ namespace IritSimulation
 		
 		private struct SimulationParameters
 		{
-			public int mi;
-			public int rep;
+			public int LagTSInd;
+			public int AmpTimeInd;
 			public int sid;
-			public SimulationParameters( int mi, int rep,int sid)
+			public SimulationParameters( int LagTSInd, int AmpTimeInd,int sid)
 			{
-				this.mi = mi;
-				this.rep = rep;
+				this.LagTSInd = LagTSInd;
+				this.AmpTimeInd = AmpTimeInd;
 				this.sid = sid;
 			}
 		}
@@ -240,7 +245,7 @@ namespace IritSimulation
 					DSR.Write("{0}\t",Mat[i,j]);
 				}
 				DSR.WriteLine();
-				HSR.WriteLine(MutationRates[i]);
+				//HSR.WriteLine(MutationRates[i]);
 			}
 			
 			DSR.Close();
@@ -281,7 +286,7 @@ namespace IritSimulation
 			lock (lockFile)
 			{
 				System.IO.StreamWriter DSR = new StreamWriter(DFilename,true);
-				DSR.WriteLine("{0}\t{1}\t{2}\t{3}\t",mi,rep,Cycle2Mutant[mi,rep],Cycle2Fixsation[mi,rep]);
+				//DSR.WriteLine("{0}\t{1}\t{2}\t{3}\t",mi,rep,Cycle2Mutant[mi,rep],Cycle2Fixsation[mi,rep]);
 				DSR.Close();
 			}
 			
