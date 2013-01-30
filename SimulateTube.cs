@@ -54,9 +54,14 @@ namespace IritSimulation
 					//put normal first divition
 					for(int i=0;i<N0Normal;i++)
 					{
+						//Get the lag time
 						double LagTime = Utils.RandDecayExponantial(mulagNormal) ;
-						int DivInd = GetIndFromdouble(LagTime,T.dt);
-						T.GrowDivision[DivInd+T.LastT,s]+=GrowKill;
+						int GagEndInd = GetIndFromdouble(LagTime,T.dt);
+						
+						//Get the divition (after the end of lag)
+						int Divind = GetDivisionTimeIndex(T.TP.Strains[s].DivLognormalParameters,T.dt);
+						
+						T.GrowDivision[Divind+GagEndInd+T.LastT,s]+=GrowKill;
 					}
 				}
 				if (mulagPersisters!=double.PositiveInfinity)
@@ -64,9 +69,14 @@ namespace IritSimulation
 					//put Persisters first divition
 					for(int i=0;i<N0Persisters;i++)
 					{
+						//Get the lag time for persisters.
 						double LagTime = Utils.RandDecayExponantial(mulagPersisters);
-						int DivInd = GetIndFromdouble(LagTime,T.dt);
-						T.GrowDivision[DivInd+T.LastT,s]+=GrowKill;
+						int GagEndInd = GetIndFromdouble(LagTime,T.dt);
+						
+						//Get the divition (after the end of lag)
+						int Divind = GetDivisionTimeIndex(T.TP.Strains[s].DivLognormalParameters,T.dt);
+						T.GrowDivision[Divind+GagEndInd+T.LastT,s]+=GrowKill;
+						
 					}
 				}
 			}
