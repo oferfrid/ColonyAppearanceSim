@@ -74,11 +74,11 @@ namespace IritSimulation
 			
 		}
 		
-		public   Tube CommuteLagForGrow(Tube T)
+		private   Tube CommuteLagForGrow(Tube T)
 		{
 			return CommuteLag( T, 1);
 		}
-		public   Tube CommuteLagForKill(Tube T)
+		private   Tube CommuteLagForKill(Tube T)
 		{
 			return CommuteLag( T,-1);
 		}
