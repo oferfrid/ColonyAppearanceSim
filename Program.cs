@@ -18,28 +18,28 @@ namespace IritSimulation
 		static bool DebugPrint;
 		
 		
-		static double maxTime = 1e6 ;
+		static double maxTime = 1e5 ;
 		
 		
-		static int res = 20;
-		static int Repetitions =40;
-		static int maxsycles = 1000;
+		static int DoublingTimeres = 100;
+		static int LagTimeres = 100;
+		
+		static int Repetitions =10;
 		
 		
 		static private System.Object lockTem = new System.Object();
 		static private System.Object lockFile = new System.Object();
 
 		
-		static double[] MutationRates;
-		static double[,] Cycle2Fixsation;
-		static double[,] Cycle2Mutant;
+		static double[][,] Fitness;
 		
-		static double LagTS ;
+		static double Nmax = 1e6;
 		
+		static double[] DoublingTimeFromTo = {20,60};
+		static double[] LagTimeFromTo = {30,10*60};
 		
-		static double Nmax = 1e7;
-		
-		static double[] MutationRateFromTo = {7,9}; //10^-(XX)
+		static double[] DoublingTimes;
+		static double[] LagTimes ;
 		
 		private static ManualResetEvent _doneEvent = new ManualResetEvent(false);
 
@@ -52,18 +52,40 @@ namespace IritSimulation
 		{
 			
 			//read cmd params
-			if(args.Length>1)
+			if(args.Length>0)
 			{
-				DebugPrint =  System.Convert.ToBoolean(args[1]);
+				DebugPrint =  System.Convert.ToBoolean(args[0]);
 			}
-			
-			LagTS = System.Convert.ToDouble(args[0]);
 			
 			
 			//delete the file
-			simResultsFilename = "EvoLag" + LagTS + "__Cycle2MutantCycle2Fixsation";
+			simResultsFilename = "Fitness";
 			FileInfo FI= new FileInfo(simResultsFilename);
 			FI.Delete();
+			
+			//init global vars
+			DoublingTimes = new double[DoublingTimeres];
+			LagTimes = new double[LagTimeres];
+			
+			
+			for(int i=0;i<DoublingTimes.Length;i++)
+			{
+				DoublingTimes[i] = DoublingTimeFromTo[0] + (DoublingTimeFromTo[1] - DoublingTimeFromTo[0])*i/(DoublingTimes.Length-1);
+			}
+			
+			for(int i=0;i<LagTimes.Length;i++)
+			{
+				LagTimes[i] = LagTimeFromTo[0] + (LagTimeFromTo[1] - LagTimeFromTo[0])*i/(LagTimes.Length-1);
+			}
+			
+			Fitness = new double[Repetitions][,];
+			for(int r=0;r<Repetitions;r++)
+			{
+			Fitness[r] = new double[DoublingTimeres,LagTimeres];
+			}
+			
+
+			
 			
 			Run4Metrix();
 			
@@ -72,39 +94,26 @@ namespace IritSimulation
 		
 		private static  void Run4Metrix()
 		{
-			//init global vars
-			MutationRates =new double[res];
 			
-			
-			for(int i=0;i<MutationRates.Length;i++)
-			{
-				MutationRates[i] = Math.Pow(10.0,-(MutationRateFromTo[0] + (MutationRateFromTo[1] - MutationRateFromTo[0])*i/(MutationRates.Length-1)));
-			}
-			
-			
-			
-			Cycle2Fixsation = new double[MutationRates.Length,Repetitions];
-			Cycle2Mutant  = new double[MutationRates.Length,Repetitions];
 			
 			DateTime start = DateTime.Now;
 			RunSimParalel();
 			//RunSim();
-			
-			Print2DMat2File("EvoLag" + LagTS + "_Cycle2Fixsation",Cycle2Fixsation);
-			Print2DMat2File("EvoLag" + LagTS + "_Cycle2Mutant",Cycle2Mutant);
-			
-			//Print2DMatH2File("EvoLag20Seed=" + Seed.ToString() + "Mat_H",Cycle2Fixsation,KillTime,Dilution);
-			Console.Beep(800,1000);
-			Console.Beep(800,1000);
-			
-			
-			TimeSpan TS = DateTime.Now - start;
-			Console.WriteLine("Ended in {0} minuts",TS.TotalMinutes);
-			Console.WriteLine();
-			
-			
-			
-		}
+			for(int r=0;r<Repetitions;r++)
+			{
+				Print2DMat2File(simResultsFilename + r.ToString("000"),Fitness[r],DoublingTimes,LagTimes);
+			}
+			                Console.Beep(800,1000);
+			                Console.Beep(800,1000);
+//
+			                
+			                TimeSpan TS = DateTime.Now - start;
+			                Console.WriteLine("Ended in {0} minuts",TS.TotalMinutes);
+			                Console.WriteLine();
+			                
+			                
+			                
+			}
 		
 		private static  void RunSimParalel()
 		{
@@ -113,18 +122,16 @@ namespace IritSimulation
 			
 			for(int r=0;r<Repetitions;r++)
 			{
-				for(int mi=0;mi<MutationRates.Length;mi++)
+				for(int doubi=0;doubi<DoublingTimes.Length;doubi++)
 				{
-					Cycle2Fixsation[mi,r] = 0;
-					Cycle2Mutant[mi,r] = 0;
-					
-					
-					Interlocked.Increment(ref numerOfThreadsNotYetCompleted);
-					ThreadPool.QueueUserWorkItem(new WaitCallback(RunOneSimulation),(object)new SimulationParameters(mi,r,sid++));
-					
+					for(int lagi=0;lagi<LagTimes.Length;lagi++)
+					{
+						
+						Interlocked.Increment(ref numerOfThreadsNotYetCompleted);
+						ThreadPool.QueueUserWorkItem(new WaitCallback(RunOneSimulation),(object)new SimulationParameters(doubi,lagi,sid++,r));
+					}
 					
 				}
-				
 			}
 			_doneEvent.WaitOne();
 			
@@ -138,68 +145,44 @@ namespace IritSimulation
 			{
 				SimulationParameters PS = (SimulationParameters)o;
 				
-				int rep = PS.rep;
-				int mi = PS.mi;
+				int doubi = PS.doubi;
+				int lagi = PS.lagi;
 				int sid = PS.sid;
+				int r = PS.r;
 				
-				double MutationRate = MutationRates[mi];
+				double doub = DoublingTimes[doubi];
+				double lag = LagTimes[lagi];
 				
 				TubeParameters TP = new TubeParameters(Nmax,new StrainParameters[]{
-				                                       	new StrainParameters("WT",1e4,0,LagTS,1000,LagTS,1000,21,3,new StrainMutationParameters[]{new StrainMutationParameters(1,MutationRate,0)}),
-				                                       	new StrainParameters("ResistanceMutant",0,0,LagTS,1000,0,0,21,3)
+				                                       	new StrainParameters("WT",Nmax/2,0,30,0,30,0,21,3),
+				                                       	new StrainParameters("Evolved",Nmax/2,0,lag,1000,lag,0,doub,3)
 				                                       });
 				
 				
 				Tube tube = new Tube(TP,maxTime);
 				SimulateTube SimulateTube = new SimulateTube(PS.sid);
 				
+				tube = SimulateTube.Kill(tube,5*60);
 				tube = SimulateTube.GrowToNmax(tube);
-				int s;
-				for(s=0;s<maxsycles;s++)
-				{
-					tube = SimulateTube.Kill(tube,240);
-					tube = SimulateTube.GrowToNmax(tube);
-					
-					//arize of mutant
-					if(tube.LastN[1]>0)
-					{
-						Cycle2Mutant[mi,rep]=s;
-					}
-					
-					//test 4 fixsasion or extiction.
-					if(((double)tube.LastN[1]/(tube.LastN[0]+tube.LastN[1])>0.7) || double.IsNaN((double)tube.LastN[1]/(tube.LastN[0]+tube.LastN[1])))
-					{
-						break;
-					}
-					
-				}
 				
-				if(double.IsNaN((double)tube.LastN[1]/(tube.LastN[0]+tube.LastN[1])))
-				{
-					Cycle2Fixsation[mi,rep] = 0;
-				}
-				else
-				{
-					if(((double)tube.LastN[1]/(tube.LastN[0]+tube.LastN[1])>0.7))
-					{
-						Cycle2Fixsation[mi,rep] = s;
-					}
-				}
+				
+				double f = tube.LastN[1]/tube.LastN[0];
+				Fitness[r][doubi,lagi] =f;
 				
 				if(DebugPrint)
 				{
-					PrintTube2File("Lag=" + LagTS.ToString() + "Repetition=" + rep.ToString() + "MutationRate=" + MutationRate.ToString("e") ,tube);
+					PrintTube2File(string.Format("doubeling={0:0.0}_Lag={1:0.0}",doub,lag),tube);
 				}
 				
 				SimulateTube = null;
 				
-				PrintMutFix2File( simResultsFilename, mi, rep);
 			}
 			finally
 			{
 				
-				//Console.WriteLine(numerOfThreadsNotYetCompleted);
-				PrintPresentege(MutationRates.Length*Repetitions-numerOfThreadsNotYetCompleted ,MutationRates.Length*Repetitions);
+				
+				PrintPresentege(DoublingTimeres * LagTimeres*Repetitions - numerOfThreadsNotYetCompleted, DoublingTimeres * LagTimeres*Repetitions);
+				
 				if (Interlocked.Decrement(ref numerOfThreadsNotYetCompleted) == 0)
 				{
 					_doneEvent.Set();
@@ -209,30 +192,43 @@ namespace IritSimulation
 		
 		private struct SimulationParameters
 		{
-			public int mi;
-			public int rep;
+			public int doubi;
+			public int lagi;
 			public int sid;
-			public SimulationParameters( int mi, int rep,int sid)
+			public int r;
+			public SimulationParameters( int doubi, int lagi,int sid,int r)
 			{
-				this.mi = mi;
-				this.rep = rep;
+				this.doubi = doubi;
+				this.lagi = lagi;
 				this.sid = sid;
+				this.r = r;
 			}
 		}
 		
 		
 		
 		#region Print2file
-		private static void Print2DMat2File(string Filename,double[,] Mat)
+		private static void Print2DMat2File(string Filename,double[,] Mat,double[] XHeader,double[] YHeader)
 		{
 			
 			string DFilename =  Filename + ".txt";
-			string HFilename =  Filename + "_H.txt";
+			string HXFilename =  Filename + "_HX.txt";
+			string HYFilename =  Filename + "_HY.txt";
 			
 			System.IO.StreamWriter DSR = new StreamWriter(DFilename, false);
-			System.IO.StreamWriter HSR = new StreamWriter(HFilename, false);
-
 			
+			System.IO.StreamWriter HXSR = new StreamWriter(HXFilename, false);
+			System.IO.StreamWriter HYSR = new StreamWriter(HYFilename, false);
+
+			for (int i=0; i<Mat.GetLength(0); i++)
+			{
+				HXSR.WriteLine(XHeader[i]);
+			}
+			for (int j=0; j<Mat.GetLength(1); j++)
+			{
+				HYSR.WriteLine(YHeader[j]);
+				
+			}
 			for (int i=0; i<Mat.GetLength(0); i++)
 			{
 				for (int j=0; j<Mat.GetLength(1); j++)
@@ -240,11 +236,11 @@ namespace IritSimulation
 					DSR.Write("{0}\t",Mat[i,j]);
 				}
 				DSR.WriteLine();
-				HSR.WriteLine(MutationRates[i]);
 			}
 			
 			DSR.Close();
-			HSR.Close();
+			HXSR.Close();
+			HYSR.Close();
 		}
 
 		
@@ -270,26 +266,26 @@ namespace IritSimulation
 		}
 		
 		
-		private static void PrintMutFix2File(string Filename,int mi,int rep)
-
-		{
-			
-			string DFilename =  Filename + ".txt";
-			
-			
-			
-			lock (lockFile)
-			{
-				System.IO.StreamWriter DSR = new StreamWriter(DFilename,true);
-				DSR.WriteLine("{0}\t{1}\t{2}\t{3}\t",mi,rep,Cycle2Mutant[mi,rep],Cycle2Fixsation[mi,rep]);
-				DSR.Close();
-			}
-			
-			
-		}
-
-		
-
+//		private static void PrintMutFix2File(string Filename,int mi,int rep)
+//
+//		{
+//
+//			string DFilename =  Filename + ".txt";
+//
+//
+//
+//			lock (lockFile)
+//			{
+//				System.IO.StreamWriter DSR = new StreamWriter(DFilename,true);
+//				DSR.WriteLine("{0}\t{1}\t{2}\t{3}\t",mi,rep,Cycle2Mutant[mi,rep],Cycle2Fixsation[mi,rep]);
+//				DSR.Close();
+//			}
+//
+//
+//		}
+//
+//
+//
 		#endregion
 
 		#region PrintPresentege

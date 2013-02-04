@@ -18,7 +18,6 @@ namespace IritSimulation
 	{
 		Utils Utils;
 		
-		
 		public SimulateTube(int seed)
 		{
 			Utils =new Utils(seed);
@@ -290,18 +289,19 @@ namespace IritSimulation
 		{
 			
 			double DivTime = Utils.RandLogNormal(LP);
-			
+		
 			int DivInd = GetIndFromdouble(DivTime,dt);
 			return DivInd;
 		}
 		
 		private  int GetIndFromdouble(double Time,double dt)
 		{
+		
 			int ind;
 			if (Time == double.PositiveInfinity)
 			{
 				throw new Exception("PositiveInfinity!");
-			}
+			}			
 			else
 			{
 				ind = Convert.ToInt32(Math.Round((Time/dt)));

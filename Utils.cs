@@ -67,7 +67,8 @@ namespace IritSimulation
 			double ro= RandUniform(1);
 			double teta= RandUniform(2*Math.PI);
 			double r=Math.Sqrt(-2*Math.Pow(sigma,2)*Math.Log(1-ro));
-			return r*Math.Sin(teta)+mean;
+			double Normal = r*Math.Sin(teta)+mean;
+			return Normal;
 			
 		}
 		 public double RandBiNormal(double mean1 ,double sigma1,double mean2 ,double sigma2,double ratio12)
