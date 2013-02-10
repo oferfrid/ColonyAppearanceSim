@@ -21,25 +21,26 @@ namespace IritSimulation
 		static double maxTime = 1e5 ;
 		
 		
-		static int DoublingTimeres = 100;
-		static int LagTimeres = 100;
+		//static int DoublingTimeres = 100;
+		//static int LagTimeres = 100;
 		
-		static int Repetitions =10;
+		
+		static int Repetitions =1;
 		
 		
 		static private System.Object lockTem = new System.Object();
 		static private System.Object lockFile = new System.Object();
 
 		
-		static double[][,] Fitness;
+		//static double[][,] Fitness;
 		
-		static double Nmax = 1e6;
+		static double Nmax = 1e9;
 		
-		static double[] DoublingTimeFromTo = {20,60};
-		static double[] LagTimeFromTo = {30,10*60};
+		//static double[] DoublingTimeFromTo = {20,60};
+		//static double[] LagTimeFromTo = {30,10*60};
 		
-		static double[] DoublingTimes;
-		static double[] LagTimes ;
+		//static double[] DoublingTimes;
+		//static double[] LagTimes ;
 		
 		private static ManualResetEvent _doneEvent = new ManualResetEvent(false);
 
@@ -58,32 +59,32 @@ namespace IritSimulation
 			}
 			
 			
-			//delete the file
-			simResultsFilename = "Fitness";
-			FileInfo FI= new FileInfo(simResultsFilename);
-			FI.Delete();
-			
-			//init global vars
-			DoublingTimes = new double[DoublingTimeres];
-			LagTimes = new double[LagTimeres];
-			
-			
-			for(int i=0;i<DoublingTimes.Length;i++)
-			{
-				DoublingTimes[i] = DoublingTimeFromTo[0] + (DoublingTimeFromTo[1] - DoublingTimeFromTo[0])*i/(DoublingTimes.Length-1);
-			}
-			
-			for(int i=0;i<LagTimes.Length;i++)
-			{
-				LagTimes[i] = LagTimeFromTo[0] + (LagTimeFromTo[1] - LagTimeFromTo[0])*i/(LagTimes.Length-1);
-			}
-			
-			Fitness = new double[Repetitions][,];
-			for(int r=0;r<Repetitions;r++)
-			{
-			Fitness[r] = new double[DoublingTimeres,LagTimeres];
-			}
-			
+//			//delete the file
+//			simResultsFilename = "Fitness";
+//			FileInfo FI= new FileInfo(simResultsFilename);
+//			FI.Delete();
+//			
+//			//init global vars
+//			DoublingTimes = new double[DoublingTimeres];
+//			LagTimes = new double[LagTimeres];
+//			
+//			
+//			for(int i=0;i<DoublingTimes.Length;i++)
+//			{
+//				DoublingTimes[i] = DoublingTimeFromTo[0] + (DoublingTimeFromTo[1] - DoublingTimeFromTo[0])*i/(DoublingTimes.Length-1);
+//			}
+//			
+//			for(int i=0;i<LagTimes.Length;i++)
+//			{
+//				LagTimes[i] = LagTimeFromTo[0] + (LagTimeFromTo[1] - LagTimeFromTo[0])*i/(LagTimes.Length-1);
+//			}
+//			
+//			Fitness = new double[Repetitions][,];
+//			for(int r=0;r<Repetitions;r++)
+//			{
+//			Fitness[r] = new double[DoublingTimeres,LagTimeres];
+//			}
+//			
 
 			
 			
@@ -99,16 +100,16 @@ namespace IritSimulation
 			DateTime start = DateTime.Now;
 			RunSimParalel();
 			//RunSim();
-			for(int r=0;r<Repetitions;r++)
-			{
-				Print2DMat2File(simResultsFilename + r.ToString("000"),Fitness[r],DoublingTimes,LagTimes);
-			}
+//			for(int r=0;r<Repetitions;r++)
+//			{
+//				Print2DMat2File(simResultsFilename + r.ToString("000"),Fitness[r],DoublingTimes,LagTimes);
+//			}
 			                Console.Beep(800,1000);
 			                Console.Beep(800,1000);
 //
 			                
 			                TimeSpan TS = DateTime.Now - start;
-			                Console.WriteLine("Ended in {0} minuts",TS.TotalMinutes);
+			                Console.WriteLine("Ended in {0}",TS);
 			                Console.WriteLine();
 			                
 			                
@@ -122,16 +123,16 @@ namespace IritSimulation
 			
 			for(int r=0;r<Repetitions;r++)
 			{
-				for(int doubi=0;doubi<DoublingTimes.Length;doubi++)
-				{
-					for(int lagi=0;lagi<LagTimes.Length;lagi++)
-					{
-						
+//				for(int doubi=0;doubi<DoublingTimes.Length;doubi++)
+//				{
+//					for(int lagi=0;lagi<LagTimes.Length;lagi++)
+//					{
+//						
 						Interlocked.Increment(ref numerOfThreadsNotYetCompleted);
-						ThreadPool.QueueUserWorkItem(new WaitCallback(RunOneSimulation),(object)new SimulationParameters(doubi,lagi,sid++,r));
-					}
-					
-				}
+						ThreadPool.QueueUserWorkItem(new WaitCallback(RunOneSimulation),(object)new SimulationParameters(sid++,r));
+//					}
+//					
+//				}
 			}
 			_doneEvent.WaitOne();
 			
@@ -145,33 +146,32 @@ namespace IritSimulation
 			{
 				SimulationParameters PS = (SimulationParameters)o;
 				
-				int doubi = PS.doubi;
-				int lagi = PS.lagi;
-				int sid = PS.sid;
-				int r = PS.r;
+					int r = PS.r;
 				
-				double doub = DoublingTimes[doubi];
-				double lag = LagTimes[lagi];
+				//double doub = DoublingTimes[doubi];
+				//double lag = LagTimes[lagi];
+				double lag = 5.0*60;
+				double doub = 20;
 				
 				TubeParameters TP = new TubeParameters(Nmax,new StrainParameters[]{
-				                                       	new StrainParameters("WT",Nmax/2,0,30,0,30,0,21,3),
-				                                       	new StrainParameters("Evolved",Nmax/2,0,lag,1000,lag,0,doub,3)
+				                                       	//new StrainParameters("WT",Nmax,0,30,0,30,0,21,3),
+				                                       	new StrainParameters("Evolved",Nmax,0,lag,1000,lag,0,doub,3)
 				                                       });
 				
 				
 				Tube tube = new Tube(TP,maxTime);
 				SimulateTube SimulateTube = new SimulateTube(PS.sid);
 				
-				tube = SimulateTube.Kill(tube,5*60);
-				tube = SimulateTube.GrowToNmax(tube);
+				tube = SimulateTube.Kill(tube,10*60);
+				//tube = SimulateTube.GrowToNmax(tube);
 				
 				
-				double f = tube.LastN[1]/tube.LastN[0];
-				Fitness[r][doubi,lagi] =f;
+				//double f = tube.LastN[1]/tube.LastN[0];
+				//Fitness[r][doubi,lagi] =f;
 				
 				if(DebugPrint)
 				{
-					PrintTube2File(string.Format("doubeling={0:0.0}_Lag={1:0.0}",doub,lag),tube);
+					PrintTube2File(string.Format("r={0:00}",r),tube);
 				}
 				
 				SimulateTube = null;
@@ -181,7 +181,7 @@ namespace IritSimulation
 			{
 				
 				
-				PrintPresentege(DoublingTimeres * LagTimeres*Repetitions - numerOfThreadsNotYetCompleted, DoublingTimeres * LagTimeres*Repetitions);
+				PrintPresentege(Repetitions - numerOfThreadsNotYetCompleted, Repetitions);
 				
 				if (Interlocked.Decrement(ref numerOfThreadsNotYetCompleted) == 0)
 				{
@@ -192,16 +192,14 @@ namespace IritSimulation
 		
 		private struct SimulationParameters
 		{
-			public int doubi;
-			public int lagi;
+			
+			
 			public int sid;
 			public int r;
-			public SimulationParameters( int doubi, int lagi,int sid,int r)
+			public SimulationParameters(int sid,int r)
 			{
-				this.doubi = doubi;
-				this.lagi = lagi;
-				this.sid = sid;
 				this.r = r;
+				this.sid = sid;
 			}
 		}
 		
