@@ -55,12 +55,12 @@ namespace IritSimulation
 					{
 						//Get the lag time
 						double LagTime = Utils.RandDecayExponantial(mulagNormal) ;
-						int GagEndInd = GetIndFromdouble(LagTime,T.dt);
+						int LagEndInd = GetIndFromdouble(LagTime,T.dt);
 						
 						//Get the divition (after the end of lag)
-						int Divind = GetDivisionTimeIndex(T.TP.Strains[s].DivLognormalParameters,T.dt);
+						int Divind = GetDivisionTimeIndex(T.TP.Strains[s].DivMean,T.dt);
 						
-						T.GrowDivision[Divind+GagEndInd+T.LastT,s]+=GrowKill;
+						T.GrowDivision[Divind + LagEndInd+T.LastT,s]+=GrowKill;
 					}
 				}
 				if (mulagPersisters!=double.PositiveInfinity)
@@ -70,11 +70,11 @@ namespace IritSimulation
 					{
 						//Get the lag time for persisters.
 						double LagTime = Utils.RandDecayExponantial(mulagPersisters);
-						int GagEndInd = GetIndFromdouble(LagTime,T.dt);
+						int LagEndInd = GetIndFromdouble(LagTime,T.dt);
 						
 						//Get the divition (after the end of lag)
-						int Divind = GetDivisionTimeIndex(T.TP.Strains[s].DivLognormalParameters,T.dt);
-						T.GrowDivision[Divind+GagEndInd+T.LastT,s]+=GrowKill;
+						int Divind = GetDivisionTimeIndex(T.TP.Strains[s].DivMean,T.dt);
+						T.GrowDivision[Divind + LagEndInd+T.LastT,s]+=GrowKill;
 						
 					}
 				}
@@ -166,10 +166,10 @@ namespace IritSimulation
 						
 						//add the next 2 divisions
 						int ind;
-						ind = GetDivisionTimeIndex(T.TP.Strains[s].DivLognormalParameters,T.dt);
+						ind = GetDivisionTimeIndex(T.TP.Strains[s].DivMean,T.dt);
 						T.GrowDivision[t+ind,s]++;
 						
-						ind = GetDivisionTimeIndex(T.TP.Strains[s].DivLognormalParameters,T.dt);
+						ind = GetDivisionTimeIndex(T.TP.Strains[s].DivMean,T.dt);
 						T.GrowDivision[t+ind,s]++;
 						N[s]++;
 						
@@ -186,10 +186,10 @@ namespace IritSimulation
 							//add the next 2 divisions
 							int ind;
 							//normal cell
-							ind = GetDivisionTimeIndex(T.TP.Strains[s].DivLognormalParameters,T.dt);
+							ind = GetDivisionTimeIndex(T.TP.Strains[s].DivMean,T.dt);
 							T.GrowDivision[t+ind,s]++;
 							//Mutants cell
-							ind = GetDivisionTimeIndex(T.TP.Strains[s].DivLognormalParameters,T.dt);
+							ind = GetDivisionTimeIndex(T.TP.Strains[s].DivMean,T.dt);
 							T.GrowDivision[t+ind,ms]++;
 							N[ms]++;
 							
@@ -251,9 +251,9 @@ namespace IritSimulation
 						
 						//add the next 2 divisions
 						int ind;
-						ind = GetDivisionTimeIndex(T.TP.Strains[s].DivLognormalParameters,T.dt);
+						ind = GetDivisionTimeIndex(T.TP.Strains[s].DivMean,T.dt);
 						T.GrowDivision[t+ind,s]++;
-						ind = GetDivisionTimeIndex(T.TP.Strains[s].DivLognormalParameters,T.dt);
+						ind = GetDivisionTimeIndex(T.TP.Strains[s].DivMean,T.dt);
 						T.GrowDivision[t+ind,s]++;
 						N[s]++;
 						
@@ -285,10 +285,12 @@ namespace IritSimulation
 			double mutants = Utils.RandBinomial(N,MutationRate);
 			return mutants;
 		}
-		private  int GetDivisionTimeIndex(Utils.LognormalParameters LP,double dt)
+		private  int GetDivisionTimeIndex(double mean,double dt)
 		{
 			
-			double DivTime = Utils.RandLogNormal(LP);
+			//double DivTime = Utils.RandLogNormal(LP);
+			
+			double DivTime = Utils.RandDecayExponantial(1.0/mean);
 		
 			int DivInd = GetIndFromdouble(DivTime,dt);
 			return DivInd;

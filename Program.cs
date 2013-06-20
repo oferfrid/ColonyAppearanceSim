@@ -20,26 +20,26 @@ namespace IritSimulation
 		
 		static double maxTime = 1e5 ;
 		
+		static int LagTimeres = 10;
+		static int PersistersFractionsres = 5;
 		
-		static int DoublingTimeres = 100;
-		static int LagTimeres = 100;
-		
-		static int Repetitions =10;
+		static int Repetitions =1;
 		
 		
 		static private System.Object lockTem = new System.Object();
 		static private System.Object lockFile = new System.Object();
 
 		
-		static double[][,] Fitness;
+		static double[,] Fitness;
 		
-		static double Nmax = 1e6;
+		static double Nmax = 1e7;
 		
-		static double[] DoublingTimeFromTo = {20,60};
 		static double[] LagTimeFromTo = {30,10*60};
-		
-		static double[] DoublingTimes;
 		static double[] LagTimes ;
+		
+		static double[] PersistersFractionFromTo = {0,0.5};
+		static double[] PersistersFractions ;
+		
 		
 		private static ManualResetEvent _doneEvent = new ManualResetEvent(false);
 
@@ -64,30 +64,31 @@ namespace IritSimulation
 			FI.Delete();
 			
 			//init global vars
-			DoublingTimes = new double[DoublingTimeres];
 			LagTimes = new double[LagTimeres];
-			
-			
-			for(int i=0;i<DoublingTimes.Length;i++)
-			{
-				DoublingTimes[i] = DoublingTimeFromTo[0] + (DoublingTimeFromTo[1] - DoublingTimeFromTo[0])*i/(DoublingTimes.Length-1);
-			}
 			
 			for(int i=0;i<LagTimes.Length;i++)
 			{
 				LagTimes[i] = LagTimeFromTo[0] + (LagTimeFromTo[1] - LagTimeFromTo[0])*i/(LagTimes.Length-1);
 			}
 			
-			Fitness = new double[Repetitions][,];
-			for(int r=0;r<Repetitions;r++)
+			
+			
+			PersistersFractions = new double[PersistersFractionsres];
+			
+			for(int i=0;i<PersistersFractions.Length;i++)
 			{
-			Fitness[r] = new double[DoublingTimeres,LagTimeres];
+				PersistersFractions[i] = PersistersFractionFromTo[0] + (PersistersFractionFromTo[1] - PersistersFractionFromTo[0])*i/(PersistersFractions.Length-1);
 			}
 			
+			
+			Fitness = new double[LagTimes.Length,PersistersFractionsres];
+			
+			
+			
 
+			//RunOneSimulation((object) new SimulationParameters(50,50,0));
 			
-			
-			Run4Metrix();
+				Run4Metrix();
 			
 		}
 		
@@ -95,43 +96,43 @@ namespace IritSimulation
 		private static  void Run4Metrix()
 		{
 			
-			
 			DateTime start = DateTime.Now;
 			RunSimParalel();
 			//RunSim();
 			for(int r=0;r<Repetitions;r++)
 			{
-				Print2DMat2File(simResultsFilename + r.ToString("000"),Fitness[r],DoublingTimes,LagTimes);
+				Print2DMat2File(simResultsFilename + "Nmax=" + Nmax.ToString("E1"),Fitness,LagTimes);
 			}
-			                Console.Beep(800,1000);
-			                Console.Beep(800,1000);
+			Console.Beep(800,1000);
+			Console.Beep(800,1000);
 //
-			                
-			                TimeSpan TS = DateTime.Now - start;
-			                Console.WriteLine("Ended in {0} minuts",TS.TotalMinutes);
-			                Console.WriteLine();
-			                
-			                
-			                
-			}
+			
+			TimeSpan TS = DateTime.Now - start;
+			Console.WriteLine("Ended in {0} minuts",TS.TotalMinutes);
+			Console.WriteLine();
+			
+			
+			
+		}
 		
 		private static  void RunSimParalel()
 		{
 			int sid=50;
 			
-			
 			for(int r=0;r<Repetitions;r++)
 			{
-				for(int doubi=0;doubi<DoublingTimes.Length;doubi++)
+				
+				for(int lagi=0;lagi<LagTimes.Length;lagi++)
 				{
-					for(int lagi=0;lagi<LagTimes.Length;lagi++)
+					for(int PersistersFractioni=0;PersistersFractioni<PersistersFractions.Length;PersistersFractioni++)
 					{
 						
 						Interlocked.Increment(ref numerOfThreadsNotYetCompleted);
-						ThreadPool.QueueUserWorkItem(new WaitCallback(RunOneSimulation),(object)new SimulationParameters(doubi,lagi,sid++,r));
+						ThreadPool.QueueUserWorkItem(new WaitCallback(RunOneSimulation),(object)new SimulationParameters(lagi,PersistersFractioni,sid++,r));
 					}
-					
 				}
+				
+				
 			}
 			_doneEvent.WaitOne();
 			
@@ -145,17 +146,18 @@ namespace IritSimulation
 			{
 				SimulationParameters PS = (SimulationParameters)o;
 				
-				int doubi = PS.doubi;
 				int lagi = PS.lagi;
+				int PersistersFractioni = PS.PersistersFractioni;
 				int sid = PS.sid;
 				int r = PS.r;
 				
-				double doub = DoublingTimes[doubi];
 				double lag = LagTimes[lagi];
 				
+				double PersistersFraction = PersistersFractions[PersistersFractioni];
+				
 				TubeParameters TP = new TubeParameters(Nmax,new StrainParameters[]{
-				                                       	new StrainParameters("WT",Nmax/2,0,30,0,30,0,21,3),
-				                                       	new StrainParameters("Evolved",Nmax/2,0,lag,1000,lag,0,doub,3)
+				                                       	new StrainParameters("WT",Nmax/2,0,30,0,30,0,20,3),
+				                                       	new StrainParameters("Evolved",Nmax/2,PersistersFraction,0.5,lag,0.5,lag,20,3)
 				                                       });
 				
 				
@@ -167,11 +169,12 @@ namespace IritSimulation
 				
 				
 				double f = tube.LastN[1]/tube.LastN[0];
-				Fitness[r][doubi,lagi] =f;
+				//TODO:add r
+				Fitness[lagi,PersistersFractioni] =f;
 				
 				if(DebugPrint)
 				{
-					PrintTube2File(string.Format("doubeling={0:0.0}_Lag={1:0.0}",doub,lag),tube);
+					PrintTube2File(string.Format("Lag={0:0.0}_PersistersFraction={1:0.0}_R={2}",lag,PersistersFraction,r),tube);
 				}
 				
 				SimulateTube = null;
@@ -181,7 +184,7 @@ namespace IritSimulation
 			{
 				
 				
-				PrintPresentege(DoublingTimeres * LagTimeres*Repetitions - numerOfThreadsNotYetCompleted, DoublingTimeres * LagTimeres*Repetitions);
+				PrintPresentege(Fitness.Length - numerOfThreadsNotYetCompleted, Fitness.Length);
 				
 				if (Interlocked.Decrement(ref numerOfThreadsNotYetCompleted) == 0)
 				{
@@ -192,14 +195,14 @@ namespace IritSimulation
 		
 		private struct SimulationParameters
 		{
-			public int doubi;
 			public int lagi;
+			public int PersistersFractioni;
 			public int sid;
 			public int r;
-			public SimulationParameters( int doubi, int lagi,int sid,int r)
+			public SimulationParameters( int lagi, int PersistersFractioni,int sid,int r)
 			{
-				this.doubi = doubi;
 				this.lagi = lagi;
+				this.PersistersFractioni = PersistersFractioni;
 				this.sid = sid;
 				this.r = r;
 			}
@@ -208,6 +211,17 @@ namespace IritSimulation
 		
 		
 		#region Print2file
+		private static void Print2DMat2File(string Filename,double[,] Mat,double[] XHeader)
+		{
+			double[] YHeader = new double[Mat.GetLength(1)];
+			for(int i=0;i<	YHeader.Length;i++)
+			{
+				YHeader[i] = i+1;
+			}
+			
+			Print2DMat2File(Filename,Mat,XHeader,YHeader);
+			
+		}
 		private static void Print2DMat2File(string Filename,double[,] Mat,double[] XHeader,double[] YHeader)
 		{
 			
